@@ -10,6 +10,7 @@
   <link rel="stylesheet" href="styles.css">
   <script src="data.js" defer></script>
   <script src="logic.js" defer></script>
+  <script src="guide.js" defer></script>
   <script src="app.js" defer></script>
 </head>
 <body>
@@ -21,7 +22,7 @@
         <span>benefit<span class="brand-accent">atlas</span><small>PSHCP GUIDE</small></span>
       </a>
       <nav class="top-nav" aria-label="Main navigation">
-        <a href="#explore">Explore</a>
+        <a href="#help-finder">Find help</a><a href="#explore">All benefits</a>
         <a href="#claim-help">How to claim</a>
         <a href="#sources">Sources</a>
       </nav>
@@ -35,7 +36,7 @@
         <div class="hero-copy">
           <div class="eyebrow"><span aria-hidden="true" class="signal-dot"></span> PUBLIC SERVICE HEALTH CARE PLAN</div>
           <h1 id="hero-title">Know what your <em>benefits cover.</em></h1>
-          <p>Find a service, see the limit and requirements, and get an idea of what your plan might reimburse.</p>
+          <p>Describe what you need help with to find possible benefits in plain language, or search by service.</p>
         </div>
         <div class="hero-trust"><span aria-hidden="true">✓</span><div><strong>Simple and private</strong><small>No sign-in. No health information is sent anywhere.</small></div></div>
         <div class="search-card">
@@ -45,6 +46,7 @@
             <input id="benefit-search" type="search" placeholder="Try massage, glasses, counselling, CPAP…" autocomplete="off" aria-controls="benefit-grid">
             <kbd aria-hidden="true">/</kbd>
           </div>
+          <a class="guide-jump" href="#help-finder">Not sure which service you need? Start with your issue →</a>
           <div class="quick-searches" aria-label="Popular benefits">
             <span>Try:</span>
             <button type="button" data-open="psychological">Mental health</button>
@@ -62,6 +64,19 @@
           </fieldset>
           <p id="coverage-explainer">Supplementary Coverage generally applies when you have provincial or territorial health insurance.</p>
         </div>
+      </div>
+    </section>
+
+    <section class="finder-section" id="help-finder" aria-labelledby="finder-title">
+      <div class="container">
+        <div class="finder-heading"><div><span class="section-kicker">NOT SURE WHICH BENEFIT TO LOOK FOR?</span><h2 id="finder-title">What do you need help with?</h2><p>Tell us about an issue, like “my back hurts.” We'll show benefit categories worth checking, using everyday language.</p></div><span class="finder-privacy">Private: your words stay in this browser.</span></div>
+        <form class="finder-form" id="finder-form">
+          <label for="issue-input">Describe what you need help with</label>
+          <div class="finder-fields"><input type="search" id="issue-input" placeholder="For example: back pain, anxiety, sore feet…" maxlength="160" autocomplete="off"><button type="submit">Find possible benefits <span aria-hidden="true">→</span></button></div>
+        </form>
+        <div class="finder-topics" id="finder-topics" aria-label="Common concerns"></div>
+        <div class="finder-results" id="finder-results" hidden role="region" aria-labelledby="finder-results-title"><div id="finder-results-content"></div></div>
+        <p class="finder-caution">This guide shows <strong>benefits to explore</strong>, not a diagnosis, treatment recommendation or confirmation that your claim will be approved. Check provider qualifications, plan rules and your actual balance with Canada Life.</p>
       </div>
     </section>
 

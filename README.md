@@ -43,10 +43,21 @@ If you do not want to use GitHub CLI, create an empty repository at https://gith
 
 ## GitHub Pages deployment
 
-1. Create a repository named `pshcp-benefit-explorer` if you have not yet.
-2. Upload the repository files **at the root** (not inside a nested folder).
-3. Open **Settings → Pages → Build and deployment**, select **Deploy from a branch**, branch `main`, folder `/ (root)`.
-4. GitHub Pages will host `index.html` without any build process.
+Repository: https://github.com/uditkumar123/pshcp-benefit-explorer
+
+**Deployment configuration (one-time, performed in GitHub):**
+
+1. Open https://github.com/uditkumar123/pshcp-benefit-explorer/settings/pages
+2. Under **Build and deployment**, choose **Deploy from a branch**.
+3. Select **main** and **/ (root)**, then **Save**.
+4. Once GitHub reports the deployment as successful, open:
+   **https://uditkumar123.github.io/pshcp-benefit-explorer/**
+
+The site uses relative asset paths and needs no build pipeline or server. Every subsequent push to `main` triggers a new Pages deployment automatically. The `.nojekyll` file keeps the deployment fully static.
+
+**Before sharing widely:** Confirm the Pages deployment succeeds, browse the app on desktop and mobile, test filters/search/calculation examples, check source links, and independently review the benefit details against the official plan terms. GitHub Pages is public hosting; do not add private member data or credentials.
+
+**Troubleshooting:** A 404 before activation means Pages may not yet be enabled or its deployment has not succeeded. Check **Actions** or the Pages settings for the deployment status.
 
 ## Files
 

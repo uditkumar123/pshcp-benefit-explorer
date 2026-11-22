@@ -4,6 +4,19 @@ A lightweight, accessible, privacy-first web app that helps people explore **Pub
 
 > Independent informational tool. Not affiliated with the Government of Canada, the PSHCP, Canada Life or MSH International. The booklet is a summary; the PSHCP Directive controls if there is a discrepancy. **No live coverage verification or account balances.**
 
+## Guided issue finder (version 3)
+
+Use **What do you need help with?** to describe an issue (for example `back pain`, `anxiety`, `foot pain`, or `sleep apnea`) or choose a topic button. The interface offers **possible benefit categories to explore**, not medical diagnoses, prescriptions, coverage approvals, or personalized eligibility determinations.
+
+- Suggestions use a fixed, inspectable topic-to-benefit map in `guide.js`, not an AI service, with no server-side collection of the issue text.
+- Every suggested service links back to the source-backed benefit card and page references.
+- Explains **separate limits** (e.g. massage therapy and physiotherapy) versus **shared limits** (psychological providers: $5,000; eligible podiatry/chiropody/foot care: $500; speech-language pathology and audiology: $750, per calendar year).
+- Maximum eligible expenses are **not** guaranteed reimbursements. Most listed practitioner services reimburse 80% of the eligible expense, subject to reasonable and customary fees and plan restrictions.
+- Unrecognized queries explicitly return no match and encourage browsing instead of guessing.
+- Run `npm test` for coverage of the topic mappings and existing app features.
+
+**Source:** Public Service Health Care Plan Member Booklet (November 2026), printed pp. 39–42 and 80–81, plus applicable individual benefit pages. The PSHCP Directive remains authoritative.
+
 ## Features (version 2)
 
 - **Search-first home page:** start with a service or common term instead of browsing a long booklet.

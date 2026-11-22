@@ -238,3 +238,51 @@ h1, h2, h3, p { margin-top: 0; }
   html { scroll-behavior: auto; }
   *, *::before, *::after { scroll-behavior: auto !important; transition: none !important; animation: none !important; }
 }
+
+/* Plain-language, privacy-first issue finder */
+.finder-section { padding: 66px 0 62px; background: #fff; border-bottom: 1px solid var(--line); }
+.finder-heading { display: flex; gap: 24px; justify-content: space-between; align-items: end; }
+.finder-heading h2 { font: 400 clamp(29px, 3.3vw, 42px)/1.17 Georgia, serif; letter-spacing: -1px; margin: 12px 0 10px; }
+.finder-heading p { color: var(--muted); max-width: 680px; font-size: 14px; line-height: 1.75; margin: 0; }
+.finder-privacy { font-size: 11px; background: #edf6ed; color: #2c7153; border: 1px solid #d4e8d4; padding: 10px 13px; border-radius: 99px; white-space: nowrap; }
+.finder-form { margin-top: 25px; }
+.finder-form label { display: block; font-size: 13px; font-weight: 780; margin-bottom: 8px; }
+.finder-fields { display: flex; gap: 11px; }
+.finder-fields input { width: 100%; min-width: 0; border: 1px solid #acc7b3; border-radius: 9px; padding: 14px 15px; background: #fafdfa; font-size: 15px; }
+.finder-fields button { border: 0; border-radius: 9px; background: var(--forest); color: white; padding: 13px 21px; font-size: 13px; font-weight: 800; white-space: nowrap; }
+.finder-fields button:hover { background: var(--forest-dark); }
+.finder-topics { display: flex; flex-wrap: wrap; gap: 9px; margin-top: 15px; }
+.finder-topics button { border: 1px solid #d7e4d7; border-radius: 99px; padding: 9px 13px; background: #f7faf6; color: #3e6754; font-size: 12px; font-weight: 660; }
+.finder-topics button[aria-pressed="true"] { border-color: #2c7254; background: #e4f1e5; color: var(--forest); }
+.finder-topics button:hover { background: #eaf3e9; }
+.finder-results { margin-top: 27px; border: 1px solid #cbdfcf; border-radius: 15px; background: #f8fcf8; padding: 27px; scroll-margin-top: 93px; }
+.finder-results-head { display: flex; justify-content: space-between; gap: 20px; align-items: start; }
+.finder-results h3 { font: 400 clamp(25px,3vw,34px)/1.2 Georgia, serif; margin: 8px 0 8px; }
+.finder-results .results-intro { max-width: 820px; color: #526a59; font-size: 14px; line-height: 1.72; margin: 0 0 20px; }
+.finder-reset { background: transparent; border: 1px solid #bad0be; border-radius: 8px; color: var(--forest); padding: 8px 12px; white-space: nowrap; font-size: 12px; font-weight: 700; }
+.finder-grid { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 12px; }
+.finder-result-card { background: #fff; border: 1px solid #dfebdf; border-radius: 11px; padding: 19px; min-width: 0; display: flex; flex-direction: column; }
+.finder-result-card h4 { font: 400 23px Georgia, serif; margin: 0 0 8px; }
+.finder-result-card p { font-size: 12px; line-height: 1.65; color: #5b6e5f; margin: 0 0 13px; }
+.finder-result-card .finder-limit { color: #23664b; font-weight: 820; font-size: 17px; margin-bottom: 9px; }
+.finder-result-card .finder-limit small { color: #617568; font-size: 11px; font-weight: 500; }
+.finder-result-card button { margin-top: auto; align-self: start; padding: 8px 12px; background: #e7f2e4; border: 1px solid #cbdcca; border-radius: 8px; color: var(--forest); font-weight: 740; font-size: 12px; }
+.finder-result-card button:hover { background: #dcebd9; }
+.finder-note { padding: 15px 17px; border-left: 3px solid #388464; background: #ecf6ec; margin-top: 17px; border-radius: 0 8px 8px 0; }
+.finder-note strong { display: block; margin-bottom: 5px; font-size: 13px; }
+.finder-note p { margin: 5px 0; font-size: 12px; line-height: 1.7; color: #41624f; }
+.finder-no-match { font-size: 14px; line-height: 1.7; color: var(--muted); }
+.finder-no-match a { color: var(--forest); font-weight: 780; }
+.finder-caution { color: #62776a; font-size: 12px; line-height: 1.7; margin: 18px 0 0; }
+@media (max-width: 730px) {
+  .finder-section { padding: 43px 0; }
+  .finder-heading { align-items: start; flex-direction: column; gap: 13px; }
+  .finder-privacy { white-space: normal; }
+  .finder-fields { flex-direction: column; }
+  .finder-fields button { width: 100%; }
+  .finder-grid { grid-template-columns: 1fr; }
+  .finder-results { padding: 16px; }
+  .finder-results-head { flex-wrap: wrap; }
+}
+
+.guide-jump { display: inline-block; margin-top: 12px; font-size: 12px; font-weight: 780; color: var(--forest); text-underline-offset: 3px; }

@@ -3,6 +3,7 @@
   'use strict';
   const { benefits, categories, source } = window.PSHCP_DATA;
   const { filterBenefits, computeIllustration, isOddCycleYear, formatCurrency } = window.PSHCP_LOGIC;
+  const { topics, matchTopic, findTopic, sharedLimits } = window.PSHCP_GUIDE;
   const state = { search: '', category: 'all', coverage: 'supplementary', sort: 'featured', visible: 9 };
   const byId = new Map(benefits.map(benefit => [benefit.id, benefit]));
   const catById = new Map(categories.map(category => [category.id, category]));
@@ -84,7 +85,7 @@
       <p class="detail-intro" id="dialog-intro">${escapeHTML(item.notes)}</p>
       ${outOfScope ? '<p class="scope-warning">This benefit is not shown for your selected coverage type. Verify which PSHCP coverage you have.</p>' : ''}
       <div class="detail-facts"><div><small>Maximum eligible expense / limit</small><strong>${escapeHTML(item.limit)}</strong><span>${escapeHTML(item.period)}</span></div><div><small>Standard reimbursement rate</small><strong>${item.rate}%</strong><span>Of eligible expenses, subject to conditions</span></div></div>
-      <section class="detail-section"><h3>What to check before spending</h3><p>${escapeHTML(item.docs)}</p>${item.combined ? '<p><strong>Shared limit:</strong> Several eligible services draw from this same maximum. Check the total already used.</p>' : ''}${cycle ? `<p><strong>Current two-calendar-year period:</strong> ${cycle.firstYear}–${cycle.lastYear}, not a rolling 24 months.</p>` : ''}</section>
+      <section class="detail-section"><h3>What to check before spending</h3><p>${escapeHTML(item.docs)}</p>${item.combined && sharedLimits[item.combined] ? `<p><strong>Shared limit:</strong> ${escapeHTML(sharedLimits[item.combined])} Your claims from all included provider types count together.</p>` : ''}${['chiropractor', 'osteopathy'].includes(item.id) ? '<p><strong>Within this service:</strong> Eligible X-rays count toward the same annual practitioner limit as treatment, not a separate allowance.</p>' : ''}${cycle ? `<p><strong>Current two-calendar-year period:</strong> ${cycle.firstYear}–${cycle.lastYear}, not a rolling 24 months.</p>` : ''}</section>
       ${estimateMarkup(item)}
       <section class="detail-sources"><h3>Check the original source</h3><p>Member booklet, November 2026. The Directive applies if the two documents differ.</p><div class="detail-links">${links(item)}</div></section>
       <div class="detail-actions"><a href="${source.member}" target="_blank" rel="noopener noreferrer" class="member-link">Check my coverage at Canada Life ↗</a><button type="button" id="share-benefit" class="share-button">Copy benefit link</button></div>
@@ -115,6 +116,59 @@
     document.getElementById('estimate-payout').textContent = result ? formatCurrency(result.planPays) : '—';
     document.getElementById('estimate-out-of-pocket').textContent = result ? `You would pay ${formatCurrency(result.memberPays)} of this expense.` : 'Enter valid, non-negative amounts.';
   }
+
+  const finder = {
+    form: document.getElementById('finder-form'),
+    input: document.getElementById('issue-input'),
+    topics: document.getElementById('finder-topics'),
+    region: document.getElementById('finder-results'),
+    content: document.getElementById('finder-results-content')
+  };
+  let selectedTopicId = null;
+  function renderFinderTopics() {
+    finder.topics.innerHTML = topics.map(topic => `<button type="button" data-topic="${topic.id}" aria-pressed="${selectedTopicId === topic.id}">${escapeHTML(topic.icon)} ${escapeHTML(topic.label)}</button>`).join('');
+  }
+  function renderFinderResult(topic) {
+    selectedTopicId = topic?.id ?? null;
+    renderFinderTopics();
+    finder.region.hidden = false;
+    if (!topic) {
+      finder.content.innerHTML = `<h3 id="finder-results-title" tabindex="-1">We couldn't find an exact match.</h3><p class="finder-no-match">Try a shorter description (such as “back pain,” “speech,” or “diabetes”), pick a topic above, or <a href="#explore">browse all 50 benefits</a>. This is not a medical symptom checker.</p>`;
+    } else {
+      const options = topic.benefits.map(([id,reason]) => {
+        const item = byId.get(id);
+        if (!item || !item.planTypes.includes(state.coverage)) return '';
+        return `<article class="finder-result-card"><h4>${escapeHTML(item.title)}</h4><p>${escapeHTML(reason)}</p><div class="finder-limit">${escapeHTML(item.limit)} <small>${escapeHTML(item.period)} · maximum eligible expense / plan limit</small></div><button type="button" data-guide-benefit="${escapeHTML(id)}" aria-label="See conditions and source pages for ${escapeHTML(item.title)}">See conditions and source →</button></article>`;
+      }).filter(Boolean).join('');
+      finder.content.innerHTML = `<div class="finder-results-head"><div><span class="section-kicker">POSSIBLE BENEFITS TO CHECK</span><h3 id="finder-results-title" tabindex="-1">${escapeHTML(topic.label)}</h3></div><button type="button" class="finder-reset" id="reset-finder">Start over</button></div><p class="results-intro">${escapeHTML(topic.intro)} These are plan benefit categories, not approval or medical advice.</p><div class="finder-grid">${options}</div><div class="finder-note"><strong>${topic.notes.some(note=>note.toLowerCase().includes('shared')) ? 'How the limits work' : 'Important to know'}</strong>${topic.notes.map(note => `<p>${escapeHTML(note)}</p>`).join('')}</div>`;
+    }
+    finder.region.querySelector('#finder-results-title')?.focus({preventScroll:true});
+    finder.region.scrollIntoView({behavior:'smooth',block:'start'});
+  }
+  finder.form.addEventListener('submit', event => {
+    event.preventDefault();
+    renderFinderResult(matchTopic(finder.input.value));
+  });
+  finder.topics.addEventListener('click', event => {
+    const button = event.target.closest('[data-topic]');
+    if (!button) return;
+    const topic = findTopic(button.dataset.topic);
+    if (!topic) return;
+    finder.input.value = '';
+    renderFinderResult(topic);
+  });
+  finder.content.addEventListener('click', event => {
+    const benefit = event.target.closest('[data-guide-benefit]');
+    if (benefit) openBenefit(benefit.dataset.guideBenefit);
+    if (event.target.closest('#reset-finder')) {
+      selectedTopicId = null;
+      finder.region.hidden = true;
+      finder.input.value = '';
+      renderFinderTopics();
+      finder.input.focus();
+    }
+  });
+  renderFinderTopics();
 
   nodes.search.addEventListener('input', e => {state.search = e.target.value; resetVisible();});
   nodes.search.addEventListener('keydown', event => {

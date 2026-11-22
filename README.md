@@ -4,8 +4,14 @@ A lightweight, accessible, privacy-first web app that helps people explore **Pub
 
 > Independent informational tool. Not affiliated with the Government of Canada, the PSHCP, Canada Life or MSH International. The booklet is a summary; the PSHCP Directive controls if there is a discrepancy. **No live coverage verification or account balances.**
 
-## Features
+## Features (version 2)
 
+- **Search-first home page:** start with a service or common term instead of browsing a long booklet.
+- **Popular benefit shortcuts:** open frequently used entries directly.
+- **Focused detail panel:** eligibility notes, limits, reimbursement rates, conditions, and page-level sources in one place.
+- **Local, optional calculator:** enters estimated eligible expense and previously used eligible expense cap, with caveats.
+- **Manageable result list:** initially shows 9 benefits with “Show more” and accessible category filters.
+- **Shareable deep links:** `?benefit=psychological` opens a specific benefit.
 - Search by procedure, provider, equipment, or everyday term.
 - Filter by benefit category and **Supplementary** vs. **Comprehensive** Coverage.
 - See eligible expense limits, benefit periods, reimbursement rates, and special conditions.
@@ -29,7 +35,10 @@ Then open http://localhost:4173. You can also open `index.html` directly in a mo
 npm test
 ```
 
-## Create and publish the GitHub repository
+## Publishing (already created)
+
+Repository: https://github.com/uditkumar123/pshcp-benefit-explorer
+
 
 With [GitHub CLI](https://cli.github.com/) installed and `gh auth login` complete, run from this project folder:
 
@@ -43,21 +52,13 @@ If you do not want to use GitHub CLI, create an empty repository at https://gith
 
 ## GitHub Pages deployment
 
-Repository: https://github.com/uditkumar123/pshcp-benefit-explorer
+- Pages settings: https://github.com/uditkumar123/pshcp-benefit-explorer/settings/pages
+- **Source:** Deploy from a branch; branch **`main`**; folder **`/ (root)`**; Save.
+- Site URL when deployment succeeds: https://uditkumar123.github.io/pshcp-benefit-explorer/
+- All JavaScript, CSS and asset paths are relative; no build step, API or cloud database is required.
+- `.nojekyll` is included in the repository. New commits to `main` automatically redeploy the static site once Pages is enabled.
 
-**Deployment configuration (one-time, performed in GitHub):**
-
-1. Open https://github.com/uditkumar123/pshcp-benefit-explorer/settings/pages
-2. Under **Build and deployment**, choose **Deploy from a branch**.
-3. Select **main** and **/ (root)**, then **Save**.
-4. Once GitHub reports the deployment as successful, open:
-   **https://uditkumar123.github.io/pshcp-benefit-explorer/**
-
-The site uses relative asset paths and needs no build pipeline or server. Every subsequent push to `main` triggers a new Pages deployment automatically. The `.nojekyll` file keeps the deployment fully static.
-
-**Before sharing widely:** Confirm the Pages deployment succeeds, browse the app on desktop and mobile, test filters/search/calculation examples, check source links, and independently review the benefit details against the official plan terms. GitHub Pages is public hosting; do not add private member data or credentials.
-
-**Troubleshooting:** A 404 before activation means Pages may not yet be enabled or its deployment has not succeeded. Check **Actions** or the Pages settings for the deployment status.
+**QA before broad sharing:** Test the site at mobile and desktop sizes, keyboard tab order and modal Escape/close behaviour, benefit links, and calculations. Have plan experts review curated benefit data against the PSHCP Directive. The application does not determine individual eligibility.
 
 ## Files
 
@@ -65,7 +66,7 @@ The site uses relative asset paths and needs no build pipeline or server. Every 
 |---|---|
 | `index.html` | Semantic, accessible interface |
 | `styles.css` | Responsive visual design |
-| `app.js` | Filters, search, cards and interaction |
+| `app.js` | Search, progressive results, accessible benefit panel and shareable links |
 | `logic.js` | Pure testable calculations |
 | `data.js` | Curated, page-referenced benefit entries |
 | `tests/` | Data-integrity and behaviour tests |

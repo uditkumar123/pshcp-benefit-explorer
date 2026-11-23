@@ -7,7 +7,7 @@ const html = fs.readFileSync(path.join(root,'index.html'),'utf8');
 const js = fs.readFileSync(path.join(root,'app.js'),'utf8');
 
 test('primary search, coverage and category controls have predictable targets', () => {
-  for(const id of ['benefit-search','benefit-grid','category-list','result-count','benefit-sort','benefit-dialog','dialog-content','close-dialog','clear-filters','load-more']) {
+  for(const id of ['benefit-search','benefit-grid','category-list','category-select','result-count','benefit-sort','benefit-dialog','dialog-content','close-dialog','clear-filters','load-more']) {
     assert.match(html,new RegExp(`id="${id}"`));
   }
   assert.match(html,/name="coverage" value="supplementary" checked/);

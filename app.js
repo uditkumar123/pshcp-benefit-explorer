@@ -10,6 +10,7 @@
   const nodes = {
     search: document.getElementById('benefit-search'),
     filters: document.getElementById('category-list'),
+    categorySelect: document.getElementById('category-select'),
     grid: document.getElementById('benefit-grid'),
     count: document.getElementById('result-count'),
     empty: document.getElementById('empty-state'),
@@ -28,10 +29,21 @@
     if (state.sort === 'az') return filtered.sort((a, b) => a.title.localeCompare(b.title, 'en-CA'));
     return filtered.sort((a, b) => Number(b.featured) - Number(a.featured) || a.title.localeCompare(b.title, 'en-CA'));
   }
-  nodes.filters.innerHTML = categories.map(cat => `<button type="button" class="category-button" data-category="${cat.id}" aria-pressed="${state.category === cat.id}"><span aria-hidden="true">${cat.icon}</span>${escapeHTML(cat.label)}</button>`).join('');
+  const categoryIcons = {
+    all: 'M3 3h5v5H3z M12 3h5v5h-5z M3 12h5v5H3z M12 12h5v5h-5z',
+    therapy: 'M2 10h4l2.5-5 3 10 2.5-5H18',
+    vision: 'M2 10s3-5 8-5 8 5 8 5-3 5-8 5-8-5-8-5Z M12 10a2 2 0 1 1-4 0 2 2 0 0 1 4 0Z',
+    drugs: 'M5 15a3.5 3.5 0 0 1 0-5l5-5a3.5 3.5 0 1 1 5 5l-5 5a3.5 3.5 0 0 1-5 0Z M7.5 7.5l5 5',
+    equipment: 'M3 6h14v11H3z M7 6V3h6v3 M10 9v5 M7.5 11.5h5',
+    travel: 'M3 6h14v10H3z M7 6V3h6v3 M6 8v6 M14 8v6',
+    dental: 'M10 5c-3-3-7-1-7 3 0 3 1.5 8 3.5 8 1 0 1-5 3.5-5s2.5 5 3.5 5c2 0 3.5-5 3.5-8 0-4-4-6-7-3Z'
+  };
+  nodes.filters.innerHTML = categories.map(cat => `<button type="button" class="category-button" data-category="${cat.id}" aria-pressed="${state.category === cat.id}"><svg class="category-icon" viewBox="0 0 20 20" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="${categoryIcons[cat.id] || categoryIcons.all}"/></svg>${escapeHTML(cat.label)}</button>`).join('');
+  nodes.categorySelect.innerHTML = categories.map(cat => `<option value="${escapeHTML(cat.id)}">${escapeHTML(cat.label)}</option>`).join('');
   const categoryButtons = nodes.filters.querySelectorAll('[data-category]');
 
   function updateCategories() {
+    if (nodes.categorySelect.value !== state.category) nodes.categorySelect.value = state.category;
     for (const button of categoryButtons) {
       const pressed = String(button.dataset.category === state.category);
       if (button.getAttribute('aria-pressed') !== pressed) button.setAttribute('aria-pressed', pressed);
@@ -39,13 +51,13 @@
   }
   function card(item) {
     const category = catById.get(item.category);
-    return `<article class="benefit-card"><button type="button" class="card-open" data-benefit="${item.id}" aria-label="View details for ${escapeHTML(item.title)}">
-      <span class="card-top"><span class="card-category">${escapeHTML(category.label)}</span><span class="card-arrow" aria-hidden="true">↗</span></span>
-      <span class="card-title">${escapeHTML(item.title)}</span>
+    return `<article class="benefit-card"><div class="card-open">
+      <span class="card-top"><span class="card-category">${escapeHTML(category.label)}</span><svg class="card-chevron" viewBox="0 0 20 20" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="m8 5 5 5-5 5"/></svg></span>
+      <h3 class="card-title"><button type="button" class="card-title-button" data-benefit="${escapeHTML(item.id)}">${escapeHTML(item.title)}</button></h3>
       <span class="card-limit"><strong>${escapeHTML(item.limit)}</strong><small>${escapeHTML(item.period)}</small></span>
       <span class="card-description">${escapeHTML(item.notes)}</span>
-      <span class="card-bottom"><span>${item.rate}% of eligible expenses</span><span>View details <span aria-hidden="true">→</span></span></span>
-    </button></article>`;
+      <span class="card-bottom"><span>${item.rate}% of eligible expenses</span></span>
+    </div></article>`;
   }
   function render() {
     updateCategories();
@@ -76,12 +88,12 @@
 
   function estimateMarkup(item) {
     if (!Number.isFinite(item.eligibleExpenseCap) || item.noEstimate || item.rate !== 80) {
-      return `<div class="estimate-unavailable"><strong>Want to know what your plan will pay?</strong><p>This benefit has additional rules, limits or eligibility conditions that this tool cannot estimate reliably. Review your actual coverage with Canada Life before spending.</p><a href="${source.member}" target="_blank" rel="noopener noreferrer">Check with Canada Life ↗</a></div>`;
+      return `<div class="estimate-unavailable"><strong>Estimate not available</strong><p>This benefit has additional rules, limits or eligibility conditions that this tool cannot estimate reliably. Review your actual coverage with Canada Life before spending.</p><a href="${source.member}" target="_blank" rel="noopener noreferrer">Check with Canada Life <span aria-hidden="true">↗</span></a></div>`;
     }
     const defaultPrice = Math.min(100, item.eligibleExpenseCap);
     const example = computeIllustration({ price: defaultPrice, alreadyUsed: 0, eligibleExpenseCap: item.eligibleExpenseCap, rate: item.rate });
     return `<section class="estimate-section" aria-labelledby="estimate-title">
-      <div class="estimate-heading"><span class="section-kicker">OPTIONAL CALCULATOR</span><h3 id="estimate-title">Estimate a reimbursement</h3><p>Enter an eligible amount and any of this benefit's eligible expense limit already used. This is not linked to your claim history.</p></div>
+      <div class="estimate-heading"><h3 id="estimate-title">Reimbursement estimate</h3><p>Enter an eligible expense and how much of the eligible expense limit you’ve already used. This is not linked to your claim history.</p></div>
       <div class="estimate-inputs">${estimateFields.map(({id, label}, index) => `<div><label for="${id}">${label} ($)</label><input id="${id}" type="number" min="0" max="${maxEstimateAmount}" step="0.01" inputmode="decimal" required value="${index === 0 ? defaultPrice : 0}"><small id="${id}-error" class="estimate-error" hidden></small></div>`).join('')}</div>
       <div class="estimate-result" id="estimate-result" aria-live="polite" aria-atomic="true"><span>Illustrative PSHCP payment</span><strong id="estimate-payout">${formatCurrency(example.planPays)}</strong><small id="estimate-out-of-pocket">You would pay ${formatCurrency(example.memberPays)} of this expense.</small></div>
       <p class="estimate-disclaimer">Assumes the entered amount is eligible and within reasonable and customary charges, with no other payer and no additional restrictions. Shared limits, prior claims, and coordination of benefits may change the amount.</p>
@@ -171,21 +183,21 @@
   };
   let selectedTopicId = null;
   function renderFinderTopics() {
-    finder.topics.innerHTML = topics.map(topic => `<button type="button" data-topic="${topic.id}" aria-pressed="${selectedTopicId === topic.id}">${escapeHTML(topic.icon)} ${escapeHTML(topic.label)}</button>`).join('');
+    finder.topics.innerHTML = topics.map(topic => `<button type="button" data-topic="${topic.id}" aria-pressed="${selectedTopicId === topic.id}">${escapeHTML(topic.label)}</button>`).join('');
   }
   function renderFinderResult(topic) {
     selectedTopicId = topic?.id ?? null;
     renderFinderTopics();
     finder.region.hidden = false;
     if (!topic) {
-      finder.content.innerHTML = `<h3 id="finder-results-title" tabindex="-1">We couldn't find an exact match.</h3><p class="finder-no-match">Try a shorter description (such as “back pain,” “speech,” or “diabetes”), pick a topic above, or <a href="#explore">browse all 50 benefits</a>. This is not a medical symptom checker.</p>`;
+      finder.content.innerHTML = `<h3 id="finder-results-title" tabindex="-1">No matching topic</h3><p class="finder-no-match">Try a shorter description (such as “back pain,” “speech,” or “diabetes”), pick a topic above, or <a href="#explore">browse benefits</a>. This is not a medical symptom checker.</p>`;
     } else {
       const options = topic.benefits.map(([id,reason]) => {
         const item = byId.get(id);
         if (!item || !item.planTypes.includes(state.coverage)) return '';
-        return `<article class="finder-result-card"><h4>${escapeHTML(item.title)}</h4><p>${escapeHTML(reason)}</p><div class="finder-limit">${escapeHTML(item.limit)} <small>${escapeHTML(item.period)} · maximum eligible expense / plan limit</small></div><button type="button" data-guide-benefit="${escapeHTML(id)}" aria-label="See conditions and source pages for ${escapeHTML(item.title)}">See conditions and source →</button></article>`;
+        return `<article class="finder-result-card"><h4>${escapeHTML(item.title)}</h4><p>${escapeHTML(reason)}</p><div class="finder-limit">${escapeHTML(item.limit)} <small>${escapeHTML(item.period)} · maximum eligible expense / plan limit</small></div><button type="button" data-guide-benefit="${escapeHTML(id)}" aria-label="View details for ${escapeHTML(item.title)}">View details</button></article>`;
       }).filter(Boolean).join('');
-      finder.content.innerHTML = `<div class="finder-results-head"><div><span class="section-kicker">POSSIBLE BENEFITS TO CHECK</span><h3 id="finder-results-title" tabindex="-1">${escapeHTML(topic.label)}</h3></div><button type="button" class="finder-reset" id="reset-finder">Start over</button></div><p class="results-intro">${escapeHTML(topic.intro)} These are plan benefit categories, not approval or medical advice.</p><div class="finder-grid">${options}</div><div class="finder-note"><strong>${topic.notes.some(note=>note.toLowerCase().includes('shared')) ? 'How the limits work' : 'Important to know'}</strong>${topic.notes.map(note => `<p>${escapeHTML(note)}</p>`).join('')}</div>`;
+      finder.content.innerHTML = `<div class="finder-results-head"><h3 id="finder-results-title" tabindex="-1">${escapeHTML(topic.label)}</h3><button type="button" class="finder-reset" id="reset-finder">Clear topic</button></div><p class="results-intro">${escapeHTML(topic.intro)} These are plan benefit categories, not approval or medical advice.</p><div class="finder-grid">${options}</div><div class="finder-note"><strong>${topic.notes.some(note=>note.toLowerCase().includes('shared')) ? 'How the limits work' : 'What to check'}</strong>${topic.notes.map(note => `<p>${escapeHTML(note)}</p>`).join('')}</div>`;
     }
     finder.region.querySelector('#finder-results-title')?.focus({preventScroll:true});
     finder.region.scrollIntoView({behavior:'smooth',block:'start'});
@@ -217,12 +229,18 @@
 
   nodes.search.addEventListener('input', e => {state.search = e.target.value; resetVisible();});
   nodes.search.addEventListener('keydown', event => {
-    if (event.key === 'Enter') document.getElementById('explore').scrollIntoView({behavior:'smooth'});
+    if (event.key !== 'Enter' || event.isComposing) return;
+    document.getElementById('explore-title').focus({preventScroll:true});
+    document.getElementById('explore').scrollIntoView();
   });
   nodes.filters.addEventListener('click', event => {
     const selected = event.target.closest('[data-category]');
     if (!selected) return;
     state.category = selected.dataset.category;
+    resetVisible();
+  });
+  nodes.categorySelect.addEventListener('change', event => {
+    state.category = event.target.value;
     resetVisible();
   });
   document.querySelectorAll('input[name="coverage"]').forEach(input => input.addEventListener('change', event => {

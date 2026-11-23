@@ -3,9 +3,9 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#f8faf8">
-  <meta name="description" content="A simpler way to explore Public Service Health Care Plan benefits, estimate possible reimbursement, and check requirements. Based on the November 2026 PSHCP Member Booklet.">
-  <title>Benefit Atlas | Understand your PSHCP benefits</title>
+  <meta name="theme-color" content="#111a32">
+  <meta name="description" content="Look up Public Service Health Care Plan benefits, review claim requirements, and estimate possible reimbursement. An independent reference based on the November 2026 PSHCP Member Booklet.">
+  <title>PSHCP Benefit Finder | Benefit Atlas</title>
   <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="styles.css">
   <script src="data.js" defer></script>
@@ -17,16 +17,16 @@
   <a class="skip-link" href="#main">Skip to content</a>
   <header class="site-header">
     <div class="container topbar">
-      <a class="brand" href="#top" aria-label="Benefit Atlas home">
-        <span class="brand-mark" aria-hidden="true">+</span>
-        <span>benefit<span class="brand-accent">atlas</span><small>PSHCP GUIDE</small></span>
+      <a class="brand" href="#top">
+        <span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true" focusable="false"><path d="M5 3h10l4 4v14H5z M15 3v5h4 M8 12h8 M8 16h6"/></svg></span>
+        <span>Benefit <span class="brand-accent">Atlas</span><small>Independent PSHCP reference</small></span>
       </a>
       <nav class="top-nav" aria-label="Main navigation">
-        <a href="#help-finder">Find help</a><a href="#explore">All benefits</a>
-        <a href="#claim-help">How to claim</a>
+        <a href="#explore">Benefits</a><a href="#help-finder">Search by issue</a>
+        <a href="#claim-help">Claims</a>
         <a href="#sources">Sources</a>
       </nav>
-      <a class="source-top-link" href="https://www.njc-cnm.gc.ca/directive/d9/v283/en" target="_blank" rel="noopener noreferrer">Official plan rules <span aria-hidden="true">↗</span></a>
+      <a class="source-top-link" href="https://www.njc-cnm.gc.ca/directive/d9/v283/en" target="_blank" rel="noopener noreferrer">PSHCP Directive <span aria-hidden="true">↗</span></a>
     </div>
   </header>
 
@@ -34,19 +34,17 @@
     <section class="hero" id="top" aria-labelledby="hero-title">
       <div class="container hero-inner">
         <div class="hero-copy">
-          <div class="eyebrow"><span aria-hidden="true" class="signal-dot"></span> PUBLIC SERVICE HEALTH CARE PLAN</div>
-          <h1 id="hero-title">Know what your <em>benefits cover.</em></h1>
-          <p>Describe what you need help with to find possible benefits in plain language, or search by service.</p>
+          <h1 id="hero-title">PSHCP benefit finder</h1>
+          <p>Look up benefit limits and claim requirements.</p>
         </div>
-        <div class="hero-trust"><span aria-hidden="true">✓</span><div><strong>Simple and private</strong><small>No sign-in. No health information is sent anywhere.</small></div></div>
         <div class="search-card">
-          <label for="benefit-search">What are you looking for?</label>
+          <label for="benefit-search">Search by service, item, or benefit</label>
           <div class="search-field">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m15.5 15.5 5 5" stroke-linecap="round"/></svg>
-            <input id="benefit-search" type="search" placeholder="Try massage, glasses, counselling, CPAP…" autocomplete="off" aria-controls="benefit-grid">
+            <input id="benefit-search" type="search" placeholder="Try massage, glasses, counselling, CPAP…" autocomplete="off" aria-controls="benefit-grid" aria-describedby="search-privacy">
             <kbd aria-hidden="true">/</kbd>
           </div>
-          <a class="guide-jump" href="#help-finder">Not sure which service you need? Start with your issue →</a>
+          <a class="guide-jump" href="#help-finder">Search by issue <span aria-hidden="true">→</span></a>
           <div class="quick-searches" aria-label="Popular benefits">
             <span>Try:</span>
             <button type="button" data-open="psychological">Mental health</button>
@@ -54,22 +52,49 @@
             <button type="button" data-open="glasses">Glasses</button>
             <button type="button" data-open="cpap">CPAP</button>
           </div>
+          <p class="search-privacy" id="search-privacy">No sign-in required. Search terms stay in this browser.</p>
         </div>
         <div class="coverage-line">
-          <div class="coverage-intro"><strong>Where are you covered?</strong><span>Choose the type shown on your plan.</span></div>
+          <div class="coverage-intro"><strong>Coverage type</strong><span>Select the type shown in your plan information.</span></div>
           <fieldset class="coverage-options">
             <legend class="sr-only">PSHCP coverage type</legend>
-            <label><input type="radio" name="coverage" value="supplementary" checked><span>In Canada</span></label>
-            <label><input type="radio" name="coverage" value="comprehensive"><span>Outside Canada</span></label>
+            <label><input type="radio" name="coverage" value="supplementary" checked><span>Supplementary</span></label>
+            <label><input type="radio" name="coverage" value="comprehensive"><span>Comprehensive</span></label>
           </fieldset>
           <p id="coverage-explainer">Supplementary Coverage generally applies when you have provincial or territorial health insurance.</p>
         </div>
       </div>
     </section>
 
+    <section class="explore-section" id="explore" aria-labelledby="explore-title">
+      <div class="container">
+        <div class="section-header">
+          <div><h2 id="explore-title" tabindex="-1">Browse benefits</h2><p>Compare eligible expense limits and reimbursement rates.</p></div>
+          <span class="edition">November 2026 booklet</span>
+        </div>
+        <div class="directory-layout">
+          <div class="directory-filters">
+            <h3 class="directory-filters-title">Categories</h3>
+            <div id="category-list" class="category-list" role="group" aria-label="Benefit categories"></div>
+            <label class="mobile-category" for="category-select">Category <select id="category-select" aria-controls="benefit-grid"></select></label>
+          </div>
+          <div class="directory-results">
+            <div class="results-bar">
+              <p id="result-count" role="status" aria-live="polite" aria-atomic="true">Loading benefits…</p>
+              <div class="results-controls"><button id="reset-filters" type="button" class="text-button" hidden>Clear search and filters</button><label for="benefit-sort">Sort by <select id="benefit-sort"><option value="featured">Popular first</option><option value="az">A–Z</option></select></label></div>
+            </div>
+            <div class="benefit-grid" id="benefit-grid"></div>
+            <div class="no-results" id="empty-state" hidden><div class="empty-icon" aria-hidden="true">⌕</div><h3>No matches found</h3><p>Try a different search or browse all categories.</p><button type="button" id="clear-filters">Show all benefits</button></div>
+            <div class="load-more-wrap"><button type="button" class="load-more" id="load-more" hidden>Show more benefits <span aria-hidden="true">↓</span></button></div>
+          </div>
+        </div>
+        <p class="directory-note">This directory does not list every PSHCP benefit. Dollar amounts shown are generally <strong>maximum eligible expenses, not guaranteed reimbursements</strong>. Your actual payment depends on plan conditions and reasonable and customary charges.</p>
+      </div>
+    </section>
+
     <section class="finder-section" id="help-finder" aria-labelledby="finder-title">
       <div class="container">
-        <div class="finder-heading"><div><span class="section-kicker">NOT SURE WHICH BENEFIT TO LOOK FOR?</span><h2 id="finder-title">What do you need help with?</h2><p>Tell us about an issue, like “my back hurts.” We'll show benefit categories worth checking, using everyday language.</p></div><span class="finder-privacy">Private: your words stay in this browser.</span></div>
+        <div class="finder-heading"><div><h2 id="finder-title">Search by issue</h2><p>Enter a concern in your own words to find benefit categories to check.</p></div><span class="finder-privacy">Your search stays in this browser.</span></div>
         <form class="finder-form" id="finder-form">
           <label for="issue-input">Describe what you need help with</label>
           <div class="finder-fields"><input type="search" id="issue-input" placeholder="For example: back pain, anxiety, sore feet…" maxlength="160" autocomplete="off"><button type="submit">Find possible benefits <span aria-hidden="true">→</span></button></div>
@@ -80,38 +105,20 @@
       </div>
     </section>
 
-    <section class="explore-section" id="explore" aria-labelledby="explore-title">
-      <div class="container">
-        <div class="section-header">
-          <div><span class="section-kicker">EXPLORE BENEFITS</span><h2 id="explore-title">Choose a benefit to see the details.</h2><p>Simple summaries first. Conditions and an estimate are one click away.</p></div>
-          <span class="edition">November 2026 booklet</span>
-        </div>
-        <div id="category-list" class="category-list" role="group" aria-label="Benefit categories"></div>
-        <div class="results-bar">
-          <p id="result-count" role="status" aria-live="polite" aria-atomic="true">Loading benefits…</p>
-          <div class="results-controls"><button id="reset-filters" type="button" class="text-button" hidden>Clear search and filters</button><label for="benefit-sort">Sort by <select id="benefit-sort"><option value="featured">Popular first</option><option value="az">A–Z</option></select></label></div>
-        </div>
-        <div class="benefit-grid" id="benefit-grid"></div>
-        <div class="no-results" id="empty-state" hidden><div class="empty-icon" aria-hidden="true">⌕</div><h3>No matches found</h3><p>Try a different search or browse all categories.</p><button type="button" id="clear-filters">Show all benefits</button></div>
-        <div class="load-more-wrap"><button type="button" class="load-more" id="load-more" hidden>Show more benefits <span aria-hidden="true">↓</span></button></div>
-        <p class="directory-note">This is a curated, non-exhaustive guide. Dollar amounts shown are generally <strong>maximum eligible expenses, not guaranteed reimbursements</strong>. Your actual payment depends on plan conditions and reasonable and customary charges.</p>
-      </div>
-    </section>
-
     <section class="how-section" id="claim-help" aria-labelledby="claim-title">
       <div class="container">
-        <span class="section-kicker">WHAT HAPPENS NEXT?</span>
-        <h2 id="claim-title">From looking up a benefit to making a claim.</h2>
+        <span class="section-kicker">CLAIMS</span>
+        <h2 id="claim-title">How to submit a claim</h2>
         <div class="steps">
           <article><span class="step-number">01</span><h3>Check the details</h3><p>Open a benefit and review the eligible expense limit, timing, and documents or approvals it may require.</p></article>
           <article><span class="step-number">02</span><h3>Check your actual coverage</h3><p>Sign in to Canada Life to check your balance and reasonable and customary charges before spending.</p></article>
           <article><span class="step-number">03</span><h3>Submit to the right place</h3><p>Most regular claims go to Canada Life. MSH handles emergency travel assistance and Comprehensive Coverage claims.</p></article>
         </div>
-        <div class="claim-actions"><div><h3>Ready to check or submit?</h3><p>Complete positive enrolment before claiming. Provincial, territorial, or other required primary coverage may need to pay first.</p></div><div class="claim-buttons"><a href="https://www.canadalife.com/pshcp" target="_blank" rel="noopener noreferrer">Canada Life <span aria-hidden="true">↗</span></a><a href="https://pshcp-msh.ca/" target="_blank" rel="noopener noreferrer">MSH portal <span aria-hidden="true">↗</span></a></div></div>
+        <div class="claim-actions"><div><h3>Claims portals</h3><p>Complete positive enrolment before claiming. Provincial, territorial, or other required primary coverage may need to pay first.</p></div><div class="claim-buttons"><a href="https://www.canadalife.com/pshcp" target="_blank" rel="noopener noreferrer">Canada Life <span aria-hidden="true">↗</span></a><a href="https://pshcp-msh.ca/" target="_blank" rel="noopener noreferrer">MSH portal <span aria-hidden="true">↗</span></a></div></div>
       </div>
     </section>
 
-    <section class="sources-section" id="sources" aria-labelledby="sources-title"><div class="container source-inner"><div><span class="section-kicker">SOURCE & SCOPE</span><h2 id="sources-title">Based on the plan booklet.</h2><p>Every benefit links to pages in the <strong>PSHCP Member Booklet (November 2026)</strong>. If the booklet and the PSHCP Directive disagree, the Directive governs. Benefit Atlas is an independent reference tool, not an official eligibility decision or live account balance.</p><small>Not affiliated with or endorsed by the Government of Canada, the PSHCP, Canada Life, or MSH International.</small></div><div class="source-actions"><a href="https://www.canadalife.com/content/dam/rfp/welcome-sites/pshcp/PSHCP-member-booklet.pdf" target="_blank" rel="noopener noreferrer">Read the member booklet <span aria-hidden="true">↗</span></a><a href="https://www.njc-cnm.gc.ca/directive/d9/v283/en" target="_blank" rel="noopener noreferrer">Read the PSHCP Directive <span aria-hidden="true">↗</span></a></div></div></section>
+    <section class="sources-section" id="sources" aria-labelledby="sources-title"><div class="container source-inner"><div><span class="section-kicker">SOURCE &amp; SCOPE</span><h2 id="sources-title">Plan documents</h2><p>Every benefit links to pages in the <strong>PSHCP Member Booklet (November 2026)</strong>. If the booklet and the PSHCP Directive disagree, the Directive governs. Benefit Atlas is an independent reference tool, not an official eligibility decision or live account balance.</p><small>Not affiliated with or endorsed by the Government of Canada, the PSHCP, Canada Life, or MSH International.</small></div><div class="source-actions"><a href="https://www.canadalife.com/content/dam/rfp/welcome-sites/pshcp/PSHCP-member-booklet.pdf" target="_blank" rel="noopener noreferrer">Read the member booklet <span aria-hidden="true">↗</span></a><a href="https://www.njc-cnm.gc.ca/directive/d9/v283/en" target="_blank" rel="noopener noreferrer">Read the PSHCP Directive <span aria-hidden="true">↗</span></a></div></div></section>
   </main>
 
   <dialog class="benefit-dialog" id="benefit-dialog" aria-labelledby="dialog-title" aria-describedby="dialog-intro">
@@ -121,6 +128,6 @@
     </div>
   </dialog>
 
-  <footer class="footer"><div class="container footer-inner"><div class="footer-brand">benefit<span>atlas</span></div><p>An independent, privacy-friendly PSHCP guide.</p><a href="#top">Back to top ↑</a></div></footer>
+  <footer class="footer"><div class="container footer-inner"><div class="footer-brand">Benefit <span>Atlas</span></div><p>Independent PSHCP reference.</p><a href="#top">Back to top ↑</a></div></footer>
 </body>
 </html>

@@ -28,8 +28,14 @@
     if (state.sort === 'az') return filtered.sort((a, b) => a.title.localeCompare(b.title, 'en-CA'));
     return filtered.sort((a, b) => Number(b.featured) - Number(a.featured) || a.title.localeCompare(b.title, 'en-CA'));
   }
-  function renderCategories() {
-    nodes.filters.innerHTML = categories.map(cat => `<button type="button" class="category-button" data-category="${cat.id}" aria-pressed="${state.category === cat.id}"><span aria-hidden="true">${cat.icon}</span>${escapeHTML(cat.label)}</button>`).join('');
+  nodes.filters.innerHTML = categories.map(cat => `<button type="button" class="category-button" data-category="${cat.id}" aria-pressed="${state.category === cat.id}"><span aria-hidden="true">${cat.icon}</span>${escapeHTML(cat.label)}</button>`).join('');
+  const categoryButtons = nodes.filters.querySelectorAll('[data-category]');
+
+  function updateCategories() {
+    for (const button of categoryButtons) {
+      const pressed = String(button.dataset.category === state.category);
+      if (button.getAttribute('aria-pressed') !== pressed) button.setAttribute('aria-pressed', pressed);
+    }
   }
   function card(item) {
     const category = catById.get(item.category);
@@ -42,7 +48,7 @@
     </button></article>`;
   }
   function render() {
-    renderCategories();
+    updateCategories();
     const matching = getMatches();
     const shown = matching.slice(0, state.visible);
     nodes.grid.innerHTML = shown.map(card).join('');
@@ -61,6 +67,13 @@
   function links(item) {
     return item.pages.map(page => `<a href="${source.pdf}#page=${page}" target="_blank" rel="noopener noreferrer">Booklet page ${page} <span aria-hidden="true">↗</span></a>`).join('');
   }
+  const estimateFields = [
+    { id: 'estimate-cost', label: 'Eligible expense amount' },
+    { id: 'estimate-used', label: 'Eligible limit already used' }
+  ];
+  // Keep entered amounts within a magnitude where numbers can distinguish cents.
+  const maxEstimateAmount = 9999999999999.99;
+
   function estimateMarkup(item) {
     if (!Number.isFinite(item.eligibleExpenseCap) || item.noEstimate || item.rate !== 80) {
       return `<div class="estimate-unavailable"><strong>Want to know what your plan will pay?</strong><p>This benefit has additional rules, limits or eligibility conditions that this tool cannot estimate reliably. Review your actual coverage with Canada Life before spending.</p><a href="${source.member}" target="_blank" rel="noopener noreferrer">Check with Canada Life ↗</a></div>`;
@@ -69,7 +82,7 @@
     const example = computeIllustration({ price: defaultPrice, alreadyUsed: 0, eligibleExpenseCap: item.eligibleExpenseCap, rate: item.rate });
     return `<section class="estimate-section" aria-labelledby="estimate-title">
       <div class="estimate-heading"><span class="section-kicker">OPTIONAL CALCULATOR</span><h3 id="estimate-title">Estimate a reimbursement</h3><p>Enter an eligible amount and any of this benefit's eligible expense limit already used. This is not linked to your claim history.</p></div>
-      <div class="estimate-inputs"><label for="estimate-cost">Eligible expense amount ($)<input id="estimate-cost" type="number" min="0" step="0.01" inputmode="decimal" value="${defaultPrice}"></label><label for="estimate-used">Eligible limit already used ($)<input id="estimate-used" type="number" min="0" step="0.01" inputmode="decimal" value="0"></label></div>
+      <div class="estimate-inputs">${estimateFields.map(({id, label}, index) => `<div><label for="${id}">${label} ($)</label><input id="${id}" type="number" min="0" max="${maxEstimateAmount}" step="0.01" inputmode="decimal" required value="${index === 0 ? defaultPrice : 0}"><small id="${id}-error" class="estimate-error" hidden></small></div>`).join('')}</div>
       <div class="estimate-result" id="estimate-result" aria-live="polite" aria-atomic="true"><span>Illustrative PSHCP payment</span><strong id="estimate-payout">${formatCurrency(example.planPays)}</strong><small id="estimate-out-of-pocket">You would pay ${formatCurrency(example.memberPays)} of this expense.</small></div>
       <p class="estimate-disclaimer">Assumes the entered amount is eligible and within reasonable and customary charges, with no other payer and no additional restrictions. Shared limits, prior claims, and coordination of benefits may change the amount.</p>
     </section>`;
@@ -107,14 +120,46 @@
     url.searchParams.delete('benefit');
     history.replaceState(null, '', url);
   }
+  function estimateInputError(input) {
+    const { badInput, valueMissing, rangeUnderflow, rangeOverflow, stepMismatch } = input.validity;
+    if (badInput) return 'Enter a number, such as 25.50.';
+    if (valueMissing) return 'Enter an amount. Use 0 if none.';
+    if (!Number.isFinite(input.valueAsNumber) || rangeOverflow) return `Enter ${formatCurrency(maxEstimateAmount)} or less.`;
+    if (rangeUnderflow) return 'Enter an amount of $0 or more.';
+    if (stepMismatch) return 'Enter an amount in dollars and cents, such as 25.50.';
+    return '';
+  }
   function updateEstimate() {
     const item = byId.get(nodes.dialog.dataset.benefitId);
-    if (!item || !document.getElementById('estimate-payout')) return;
-    const price = document.getElementById('estimate-cost').valueAsNumber;
-    const alreadyUsed = document.getElementById('estimate-used').valueAsNumber;
-    const result = computeIllustration({price, alreadyUsed, eligibleExpenseCap:item.eligibleExpenseCap, rate:item.rate});
-    document.getElementById('estimate-payout').textContent = result ? formatCurrency(result.planPays) : '—';
-    document.getElementById('estimate-out-of-pocket').textContent = result ? `You would pay ${formatCurrency(result.memberPays)} of this expense.` : 'Enter valid, non-negative amounts.';
+    const payout = document.getElementById('estimate-payout');
+    if (!item || !payout) return;
+
+    const errors = [];
+    const [price, alreadyUsed] = estimateFields.map(({id, label}) => {
+      const input = document.getElementById(id);
+      const error = document.getElementById(`${id}-error`);
+      const message = estimateInputError(input);
+      if (message) errors.push(`${label}: ${message}`);
+      if (message !== error.textContent) {
+        error.textContent = message;
+        error.hidden = !message;
+        if (message) {
+          input.setAttribute('aria-invalid', 'true');
+          input.setAttribute('aria-describedby', error.id);
+        } else {
+          input.removeAttribute('aria-invalid');
+          input.removeAttribute('aria-describedby');
+        }
+      }
+      return input.valueAsNumber;
+    });
+
+    const result = errors.length ? null : computeIllustration({price, alreadyUsed, eligibleExpenseCap:item.eligibleExpenseCap, rate:item.rate});
+    const status = document.getElementById('estimate-out-of-pocket');
+    const payoutText = result ? formatCurrency(result.planPays) : '—';
+    const statusText = result ? `You would pay ${formatCurrency(result.memberPays)} of this expense.` : errors.join(' ');
+    if (payout.textContent !== payoutText) payout.textContent = payoutText;
+    if (status.textContent !== statusText) status.textContent = statusText;
   }
 
   const finder = {

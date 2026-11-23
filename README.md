@@ -36,42 +36,33 @@ Use **What do you need help with?** to describe an issue (for example `back pain
 
 ## Quick start
 
-No dependency installation is required.
+Use Node.js 22 (with npm), the same major version used by the deployment workflow. No packages or Python installation are required. On Windows, macOS, or Linux, run:
 
 ```bash
-python3 -m http.server 4173
+npm start
 ```
 
-Then open http://localhost:4173. You can also open `index.html` directly in a modern browser. Run data and calculation tests with:
+Open http://127.0.0.1:4173/. The preview server listens only on this computer and serves only the app's public files. If the port is busy, use `npm start -- 4180` and open http://127.0.0.1:4180/. You can also open `index.html` directly in a modern browser. Run data and calculation tests with:
 
 ```bash
 npm test
 ```
 
-## Publishing (already created)
-
-Repository: https://github.com/uditkumar123/pshcp-benefit-explorer
-
-
-With [GitHub CLI](https://cli.github.com/) installed and `gh auth login` complete, run from this project folder:
-
-```bash
-./publish-github.sh private
-```
-
-This initializes Git if necessary, commits the project, and creates/pushes the repository to the **currently authenticated GitHub account**. Use `./publish-github.sh public` instead only when you are ready to publish. You must have Git author name/email configured. An existing repo with the same name will make the command fail rather than overwrite it.
-
-If you do not want to use GitHub CLI, create an empty repository at https://github.com/new and use **Add file → Upload files** to upload the unzipped contents.
-
 ## GitHub Pages deployment
 
-- Pages settings: https://github.com/uditkumar123/pshcp-benefit-explorer/settings/pages
-- **Source:** Deploy from a branch; branch **`main`**; folder **`/ (root)`**; Save.
-- Site URL when deployment succeeds: https://uditkumar123.github.io/pshcp-benefit-explorer/
-- All JavaScript, CSS and asset paths are relative; no build step, API or cloud database is required.
-- `.nojekyll` is included in the repository. New commits to `main` automatically redeploy the static site once Pages is enabled.
+- In the [existing repository's Pages settings](https://github.com/uditkumar123/pshcp-benefit-explorer/settings/pages), set **Build and deployment → Source** to **GitHub Actions**.
+- The existing **Publish Benefit Atlas** workflow (`.github/workflows/pages.yml`) runs on pushes to `main`. It can also be run manually from the Actions tab (select `main`). It runs `npm test` before packaging and deploying the static app files.
+- After a successful deployment, open https://uditkumar123.github.io/pshcp-benefit-explorer/ and verify that the app and benefit deep links load.
 
-**QA before broad sharing:** Test the site at mobile and desktop sizes, keyboard tab order and modal Escape/close behaviour, benefit links, and calculations. Have plan experts review curated benefit data against the PSHCP Directive. The application does not determine individual eligibility.
+## Before sharing with PSHCP members
+
+For a small, moderated comparison with the official coverage guide, see the [pilot kit](docs/pilot/moderator-guide.md).
+
+- [ ] Ask a PSHCP plan expert to verify the pilot's benefit entries, limits, exceptions, and source links against the current PSHCP Directive. Record what was reviewed and flag gaps; automated tests do not validate plan accuracy.
+- [ ] Check the app on mobile and desktop, at 200% and 400% zoom, with keyboard only (tab order, focus and Escape), and with a screen reader. Check benefit links and calculator examples too.
+- [ ] Tell pilot participants the app is English-only. For broader sharing, confirm English/French expectations and arrange reviewed French content before inviting a bilingual audience.
+- [ ] Make clear in the invitation that this is an independent reference, not an eligibility decision. Ask participants not to enter or share personal identifiers, plan/certificate numbers, or health information.
+- [ ] Name a maintainer and set a review cadence for Directive/booklet changes, broken links, and revision notes. If using Pages, verify site visibility and permissions for the intended audience before sending the link; repository privacy alone is not a visibility check.
 
 ## Files
 
@@ -108,14 +99,6 @@ Edit `data.js` and record:
 5. Any authorization/documentation requirements, and whether the reimbursement illustration is safe to show.
 
 Run `npm test` after changing data. Changes to the Directive and updates to the insurer's Reasonable and Customary charges are **not automatically synced**.
-
-## Next steps before a public launch
-
-- Have a benefits subject-matter expert audit all data entries and exceptions against the Directive.
-- Test the experience with a screen reader, keyboard only, and mobile zoom at 200%/400%.
-- Add the French experience using approved, reviewed translations (the prototype is English-only).
-- Set up an owner and cadence for booklet updates, monitor broken source links, and add visible revision notes.
-- Do not collect personal plan numbers, certificate numbers or health information without a proper privacy/security review.
 
 ## License
 

@@ -21,6 +21,24 @@ test('coverage filter excludes supplementary-only travel coverage abroad', () =>
   assert.ok(filterBenefits(benefits,{coverage:'comprehensive'}).some(b=>b.id==='basic-abroad'));
   assert.ok(!filterBenefits(benefits,{coverage:'supplementary'}).some(b=>b.id==='basic-abroad'));
 });
+test('hospital room levels distinguish Canadian room and board from the rules abroad', () => {
+  for (const coverage of ['supplementary','comprehensive']) {
+    const listed = filterBenefits(benefits,{coverage,category:'travel'});
+    for (const [id, limit] of [['hospital-one','$90/day'],['hospital-two','$170/day'],['hospital-three','$250/day']]) {
+      const room = listed.find(b=>b.id===id);
+      assert.ok(room, `${id} missing for ${coverage}`);
+      assert.equal(room.limit,limit);
+      assert.equal(room.rate,100);
+      assert.equal(room.period,'Per hospital day');
+      assert.match(room.notes,/Booklet p\. 61 describes .*room and board charges .* in Canada/i);
+      assert.match(room.notes,/section 7 applies regardless of where members reside/i);
+      assert.match(room.notes,/separate hospital charges rule for pensioners residing outside Canada \(section 7\.2\.2\)/i);
+      assert.ok(room.pages.includes(61));
+    }
+    assert.equal(listed.some(b=>b.id==='hospital-abroad'),coverage==='comprehensive');
+  }
+  assert.match(benefits.find(b=>b.id==='hospital-abroad').notes,/separate .*section 9 provision .*posted or deployed employees/i);
+});
 test('full text search and category filtering work together', () => {
   assert.equal(filterBenefits(benefits,{search:'massage',category:'therapy'}).length,1);
   assert.equal(filterBenefits(benefits,{search:'CPAP',category:'vision'}).length,0);

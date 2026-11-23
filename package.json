@@ -4,7 +4,7 @@
   "private": true,
   "description": "Independent, privacy-first browser for Public Service Health Care Plan benefits",
   "scripts": {
-    "start": "python3 -m http.server 4173",
+    "start": "node scripts/serve.cjs",
     "test": "node --test tests/*.test.cjs"
   },
   "license": "MIT"

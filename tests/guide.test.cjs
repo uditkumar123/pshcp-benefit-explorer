@@ -31,6 +31,18 @@ test('common concerns match guidance and unknown concerns are not guessed', () =
   assert.equal(matchTopic('unrelated nonmatching text'), null);
   assert.equal(findTopic('nothing'), null);
 });
+test('specific concerns and services outrank generic finder words', () => {
+  assert.equal(matchTopic('I have sore feet').id, 'feet');
+  assert.equal(matchTopic('speech therapy').id, 'speech');
+  assert.equal(matchTopic('massage therapy').id, 'back');
+  assert.equal(matchTopic('occupational therapy').id, 'injury');
+  assert.equal(matchTopic('massage therapy for a knee injury').id, 'back');
+  assert.equal(matchTopic('physical therapy').id, 'injury');
+});
+test('generic finder queries retain their fallback topics', () => {
+  assert.equal(matchTopic('sore').id, 'back');
+  assert.equal(matchTopic('therapy').id, 'mental');
+});
 test('shared practitioner limits are explicit and traceable', () => {
   assert.match(sharedLimits.psychological, /5,000/);
   assert.match(sharedLimits.footcare, /500/);

@@ -13,7 +13,7 @@
   const topics = [
     {
       id: 'back', label: 'Back, neck or muscle pain', icon: '◒',
-      match: ['back','neck','shoulder','muscle','stiff','sore','tension','spine','sciatica','sciatic','lower back'],
+      match: ['back','neck','shoulder','muscle','stiff','sore','tension','spine','sciatica','sciatic','lower back','massage therapy'],
       intro: 'Several types of practitioners have separate PSHCP benefits. Which service is appropriate depends on your needs and the provider’s advice.',
       benefits: [
         ['physiotherapy','Helps with movement, rehabilitation and physical function.'],
@@ -26,7 +26,7 @@
     },
     {
       id: 'injury', label: 'Injury or movement problems', icon: '↗',
-      match: ['injury','injured','rehab','recovery','mobility','movement','joint','knee','ankle','sprain','physical therapy','recovering','surgery recovery'],
+      match: ['injury','injured','rehab','recovery','mobility','movement','joint','knee','ankle','sprain','physical therapy','occupational therapy','recovering','surgery recovery'],
       intro: 'These services may be relevant to recovery and day-to-day movement. They are different benefits and may have different rules.',
       benefits: [
         ['physiotherapy','Physiotherapy focuses on injuries and movement.'],
@@ -55,7 +55,7 @@
     },
     {
       id: 'speech', label: 'Speech or hearing help', icon: '◉',
-      match: ['speech','language','audiolog','hearing','hard of hearing','hearing loss','hearing aid','communication','stutter','voice'],
+      match: ['speech','speech therapy','language','audiolog','hearing','hard of hearing','hearing loss','hearing aid','communication','stutter','voice'],
       intro: 'The plan distinguishes professional assessments or treatment from hearing devices and supplies.',
       benefits: [
         ['speech','Speech-language pathologists and audiologists share one practitioner limit.'],
@@ -138,7 +138,11 @@
   function matchTopic(query) {
     const text = normalized(query);
     if (!text) return null;
-    const ranked = topics.map(topic => ({topic, score: topic.match.reduce((sum, term) => sum + (matchesTerm(text,term) ? (term.includes(' ') ? 3 : 1) : 0), 0)}));
+    const ranked = topics.map(topic => ({topic, score: topic.match.reduce((sum, term) => {
+      if (!matchesTerm(text,term)) return sum;
+      if (term === 'sore' || term === 'therapy') return sum + 0.25;
+      return sum + (term.includes(' ') ? 3 : 1);
+    }, 0)}));
     ranked.sort((a,b) => b.score-a.score || topics.indexOf(a.topic)-topics.indexOf(b.topic));
     return ranked[0]?.score ? ranked[0].topic : null;
   }

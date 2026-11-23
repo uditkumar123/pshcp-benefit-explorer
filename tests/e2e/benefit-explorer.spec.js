@@ -140,7 +140,7 @@ test('usage can be saved to a JSON file and loaded back', async ({ page }) => {
   await page.getByRole('button', { name: 'Add to my usage' }).click();
 
   const downloadPromise = page.waitForEvent('download');
-  await page.getByRole('button', { name: 'Save to file' }).click();
+  await page.getByRole('button', { name: 'Save backup (JSON)' }).click();
   const download = await downloadPromise;
   expect(download.suggestedFilename()).toMatch(/^benefit-atlas-usage-\d{4}-\d{2}-\d{2}\.json$/);
 
@@ -177,4 +177,36 @@ test('usage can be saved to a JSON file and loaded back', async ({ page }) => {
   await expect(page.getByRole('progressbar', {
     name: 'Massage therapy: 40% of the eligible limit used'
   })).toBeVisible();
+});
+
+test('usage can be saved as CSV and loaded back', async ({ page }) => {
+  await page.getByRole('combobox', { name: 'Benefit', exact: true }).selectOption('footcare');
+  await page.getByLabel('Amount eligible ($)').fill('125');
+  await page.getByRole('button', { name: 'Add to my usage' }).click();
+
+  const downloadPromise = page.waitForEvent('download');
+  await page.getByRole('button', { name: 'Save spreadsheet (CSV)' }).click();
+  const download = await downloadPromise;
+  expect(download.suggestedFilename()).toMatch(/^benefit-atlas-usage-\d{4}-\d{2}-\d{2}\.csv$/);
+
+  const stream = await download.createReadStream();
+  const chunks = [];
+  for await (const chunk of stream) chunks.push(chunk);
+  const text = Buffer.concat(chunks).toString('utf8');
+  expect(text).toContain('benefit,title,eligible');
+  expect(text).toContain('footcare,Podiatry & chiropody,125.00');
+
+  page.once('dialog', dialog => dialog.accept());
+  await page.getByRole('button', { name: 'Clear all my entries' }).click();
+  await expect(page.getByText('No entries yet. Add a claim to start tracking.')).toBeVisible();
+
+  await page.locator('#usage-file').setInputFiles({
+    name: 'usage.csv',
+    mimeType: 'text/csv',
+    buffer: Buffer.from(text)
+  });
+  await expect(page.getByRole('progressbar', {
+    name: 'Podiatry & chiropody: 25% of the eligible limit used'
+  })).toBeVisible();
+  await expect(page.locator('#usage-file-status')).toHaveText('Loaded 1 benefit from file.');
 });

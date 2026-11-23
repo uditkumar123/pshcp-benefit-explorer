@@ -2,7 +2,7 @@
 (function () {
   'use strict';
   const { benefits, categories, source } = window.PSHCP_DATA;
-  const { rankBenefits, computeIllustration, usageSummary, createUsageExport, readUsageExport, claimRoute, isOddCycleYear, formatCurrency } = window.PSHCP_LOGIC;
+  const { rankBenefits, computeIllustration, usageSummary, createUsageExport, createUsageCsv, readUsageFile, claimRoute, isOddCycleYear, formatCurrency } = window.PSHCP_LOGIC;
   const { topics, matchTopic, findTopic, sharedLimits } = window.PSHCP_GUIDE;
   const state = { search: '', category: 'all', coverage: 'supplementary', sort: 'featured', visible: 9 };
   const byId = new Map(benefits.map(benefit => [benefit.id, benefit]));
@@ -27,6 +27,7 @@
     usageSummary: document.getElementById('usage-summary'),
     usageClear: document.getElementById('usage-clear'),
     usageExport: document.getElementById('usage-export'),
+    usageExportCsv: document.getElementById('usage-export-csv'),
     usageImport: document.getElementById('usage-import'),
     usageFile: document.getElementById('usage-file'),
     usageStatus: document.getElementById('usage-file-status')
@@ -321,6 +322,7 @@
       : 'No entries yet. Add a claim to start tracking.';
     nodes.usageClear.hidden = tracked.length === 0;
     nodes.usageExport.disabled = tracked.length === 0;
+    nodes.usageExportCsv.disabled = tracked.length === 0;
     render();
   }
   function setUsageStatus(message, isError = false) {
@@ -378,20 +380,38 @@
     renderUsage();
     nodes.usageBenefit.focus();
   });
-  nodes.usageExport.addEventListener('click', () => {
-    if (!Object.keys(usage).length) return;
-    const payload = createUsageExport(usage, usageBenefits);
-    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+  function saveUsageFile(filename, type, content, message) {
+    const blob = new Blob([content], { type });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = `benefit-atlas-usage-${new Date().toISOString().slice(0, 10)}.json`;
+    link.download = filename;
     link.hidden = true;
     document.body.append(link);
     link.click();
     link.remove();
     window.setTimeout(() => URL.revokeObjectURL(url), 1000);
-    setUsageStatus('Saved a copy to your downloads folder. It contains benefit names and eligible amounts only.');
+    setUsageStatus(message);
+  }
+  nodes.usageExport.addEventListener('click', () => {
+    if (!Object.keys(usage).length) return;
+    const date = new Date().toISOString().slice(0, 10);
+    saveUsageFile(
+      `benefit-atlas-usage-${date}.json`,
+      'application/json',
+      JSON.stringify(createUsageExport(usage, usageBenefits), null, 2),
+      'Saved a JSON backup to your downloads folder. Load file can restore it.'
+    );
+  });
+  nodes.usageExportCsv.addEventListener('click', () => {
+    if (!Object.keys(usage).length) return;
+    const date = new Date().toISOString().slice(0, 10);
+    saveUsageFile(
+      `benefit-atlas-usage-${date}.csv`,
+      'text/csv',
+      createUsageCsv(usage, usageBenefits),
+      'Saved a CSV spreadsheet to your downloads folder. It opens in Excel or Sheets.'
+    );
   });
   nodes.usageImport.addEventListener('click', () => nodes.usageFile.click());
   nodes.usageFile.addEventListener('change', async () => {
@@ -409,7 +429,7 @@
       setUsageStatus('That file could not be read. Try saving it again from this page.', true);
       return;
     }
-    const result = readUsageExport(text, usageBenefits);
+    const result = readUsageFile(text, usageBenefits, file.name);
     if (!result.ok) {
       setUsageStatus(result.message, true);
       return;

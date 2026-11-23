@@ -1,7 +1,7 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const { benefits } = require('../data.js');
-const { filterBenefits, rankBenefits, claimRoute, claimDestinations, editDistance, usageSummary, createUsageExport, readUsageExport } = require('../logic.js');
+const { filterBenefits, rankBenefits, claimRoute, claimDestinations, editDistance, usageSummary, createUsageExport, createUsageCsv, parseCsv, readUsageExport, readUsageCsv, readUsageFile } = require('../logic.js');
 const byId = new Map(benefits.map(b => [b.id, b]));
 
 test('direct name and alias matches rank above incidental mentions', () => {
@@ -112,4 +112,43 @@ test('usage import validates the file and skips unusable entries', () => {
   assert.equal(readUsageExport(JSON.stringify({ format: 'other', entries: [] }), benefits).ok, false);
   assert.match(readUsageExport(JSON.stringify({ format: 'other', entries: [] }), benefits).message, /not created by/);
   assert.match(readUsageExport(JSON.stringify({ format: 'pshcp-usage', entries: [] }), benefits).message, /No usable/);
+});
+
+test('CSV export is spreadsheet friendly and round-trips', () => {
+  const csv = createUsageCsv({ physiotherapy: 1250, massage: 125 }, benefits);
+  assert.equal(csv.split('\r\n')[0], 'benefit,title,eligible');
+  assert.match(csv, /physiotherapy,Physiotherapy,1250\.00/);
+  assert.match(csv, /massage,Massage therapy,125\.00/);
+
+  const loaded = readUsageCsv(csv, benefits);
+  assert.equal(loaded.ok, true);
+  assert.equal(loaded.entries.physiotherapy, 1250);
+  assert.equal(loaded.entries.massage, 125);
+  assert.equal(loaded.skipped, 0);
+
+  assert.equal(readUsageFile(csv, benefits).entries.physiotherapy, 1250);
+  assert.equal(readUsageFile(JSON.stringify(createUsageExport({ massage: 200 }, benefits)), benefits).entries.massage, 200);
+  assert.match(readUsageFile('not json', benefits, 'backup.json').message, /valid JSON/);
+  assert.match(readUsageFile('name,value', benefits, 'backup.csv').message, /“benefit” column/);
+});
+
+test('CSV import accepts benefit titles, quoted amounts and skips unknown rows', () => {
+  const parsed = readUsageCsv('benefit,eligible\r\n"Massage therapy","$1,250.50"\r\nUnknown,20\r\n,5\r\n', benefits);
+  assert.equal(parsed.ok, true);
+  assert.equal(parsed.entries.massage, 1250.5);
+  assert.equal(parsed.skipped, 2);
+
+  const reordered = readUsageCsv('eligible,title,benefit\n100,"Mental health & counselling",psychological\n', benefits);
+  assert.equal(reordered.ok, true);
+  assert.equal(reordered.entries.psychological, 100);
+
+  assert.deepEqual(parseCsv('a,"b, c","d""e"\r\nf,g,h'), [['a', 'b, c', 'd"e'], ['f', 'g', 'h']]);
+});
+
+test('CSV import explains a missing column or empty file', () => {
+  const missing = readUsageCsv('name,value\nMassage,100\n', benefits);
+  assert.equal(missing.ok, false);
+  assert.match(missing.message, /“benefit” column/);
+  assert.equal(readUsageCsv('', benefits).ok, false);
+  assert.match(readUsageCsv('', benefits).message, /empty/);
 });

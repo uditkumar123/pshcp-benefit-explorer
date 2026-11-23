@@ -9,7 +9,7 @@ A lightweight, accessible, privacy-first web app that helps people explore **Pub
 Use **My usage** to add the **amount eligible** from a processed Canada Life claim. Each tracked benefit shows a bar for used versus remaining eligible expense, the remaining eligible amount, and what that remainder could still reimburse at the standard rate.
 
 - Entries are saved only in this browser (`localStorage`), with no account, plan number, member ID or claim details. Use **Clear all my entries** to remove them.
-- **Save to file** downloads a small JSON backup; **Load from file** restores it in another browser or device. Imports are validated and unknown benefits or invalid amounts are skipped.
+- **Save backup (JSON)** downloads a complete backup; **Save spreadsheet (CSV)** produces a table that opens in Excel or Sheets. **Load file** accepts either, validates it, and skips unknown benefits or invalid amounts.
 - Only dollar-based limits can be shown as a bar. Frequency limits (for example, one CPAP device every 60 months) and per-day hospital amounts are not tracked.
 - These figures are your own notes, not an official balance. The claim decision and remaining balance come from Canada Life or MSH.
 
@@ -33,7 +33,7 @@ Use **What do you need help with?** to describe an issue (for example `back pain
 - **Popular benefit shortcuts:** open frequently used entries directly.
 - **Focused detail panel:** a **Before you spend** summary puts the limit type, reset period, documents and claim destination ahead of the calculator.
 - **Claim routing:** a table and per-benefit guidance show whether a claim goes to Canada Life or MSH, including travel emergencies and Comprehensive Coverage abroad.
-- **Usage tracker:** optional local bars for used versus remaining eligible expense, based on amounts you enter, with a JSON backup you can save and reload.
+- **Usage tracker:** optional local bars for used versus remaining eligible expense, based on amounts you enter, with JSON backup and CSV spreadsheet export/import.
 - **Local, optional calculator:** enters estimated eligible expense and previously used eligible expense cap, with caveats.
 - **Manageable result list:** initially shows 9 benefits with “Show more” and accessible category filters.
 - **Shareable deep links:** `?benefit=psychological` opens a specific benefit.

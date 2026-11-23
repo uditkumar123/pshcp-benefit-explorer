@@ -154,26 +154,128 @@
   const USAGE_VERSION = 1;
   const MAX_USAGE_AMOUNT = 9999999999999.99;
 
-  /** Portable, human-readable backup. Contains benefit ids and amounts only. */
-  function createUsageExport(usage, items, date = new Date()) {
-    const byId = new Map(items.map(item => [item.id, item]));
-    const entries = Object.entries(usage)
-      .filter(([id, value]) => byId.has(id) && Number.isFinite(value) && value > 0)
+  const usageKey = value => normalize(value).replace(/[^a-z0-9]+/g, ' ').trim();
+
+  /** Resolve either a benefit id or a readable title, so hand-edited CSV files still work. */
+  function usageLookup(items) {
+    const byId = new Map();
+    const byTitle = new Map();
+    for (const item of items) {
+      byId.set(item.id, item);
+      byTitle.set(usageKey(item.title), item);
+    }
+    return { byId, byTitle };
+  }
+  function resolveUsageBenefit(value, lookup) {
+    const key = String(value ?? '').trim();
+    return lookup.byId.get(key) || lookup.byTitle.get(usageKey(key)) || null;
+  }
+  function addUsageEntry(entries, item, value) {
+    entries[item.id] = Math.round(((entries[item.id] || 0) + value) * 100) / 100;
+  }
+  function usageEntries(usage, lookup) {
+    return Object.entries(usage)
+      .filter(([id, value]) => lookup.byId.has(id) && Number.isFinite(value) && value > 0)
       .sort(([a], [b]) => a.localeCompare(b))
-      .map(([id, value]) => ({ benefit: id, title: byId.get(id).title, eligible: Math.round(value * 100) / 100 }));
+      .map(([id, value]) => ({ benefit: id, title: lookup.byId.get(id).title, eligible: Math.round(value * 100) / 100 }));
+  }
+
+  /** Portable, human-readable JSON backup. Contains benefit ids and amounts only. */
+  function createUsageExport(usage, items, date = new Date()) {
     return {
       app: 'Benefit Atlas',
       format: USAGE_FORMAT,
       version: USAGE_VERSION,
       exportedAt: date.toISOString(),
       note: 'Your own eligible-expense notes for the PSHCP usage tracker. Not an official PSHCP balance. No plan, member or claim identifiers are included.',
-      entries
+      entries: usageEntries(usage, usageLookup(items))
     };
   }
 
-  /** Strictly validates an imported file; never trusts titles or other display fields. */
+  function csvField(value) {
+    const text = String(value);
+    return /[",\r\n]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
+  }
+
+  /** Spreadsheet-friendly export: benefit id, readable title, eligible amount. */
+  function createUsageCsv(usage, items) {
+    const rows = [['benefit', 'title', 'eligible']];
+    for (const entry of usageEntries(usage, usageLookup(items))) {
+      rows.push([entry.benefit, entry.title, entry.eligible.toFixed(2)]);
+    }
+    return `${rows.map(row => row.map(csvField).join(',')).join('\r\n')}\r\n`;
+  }
+
+  /** Small RFC 4180-style parser: quotes, escaped quotes, CRLF and a BOM are supported. */
+  function parseCsv(text) {
+    const input = String(text).replace(/^\uFEFF/, '');
+    const rows = [];
+    let row = [];
+    let field = '';
+    let quoted = false;
+    for (let index = 0; index < input.length; index += 1) {
+      const char = input[index];
+      if (quoted) {
+        if (char === '"' && input[index + 1] === '"') {
+          field += '"';
+          index += 1;
+        } else if (char === '"') {
+          quoted = false;
+        } else {
+          field += char;
+        }
+      } else if (char === '"') {
+        quoted = true;
+      } else if (char === ',') {
+        row.push(field);
+        field = '';
+      } else if (char === '\n' || char === '\r') {
+        if (char === '\r' && input[index + 1] === '\n') index += 1;
+        row.push(field);
+        rows.push(row);
+        row = [];
+        field = '';
+      } else {
+        field += char;
+      }
+    }
+    if (field.length || row.length) {
+      row.push(field);
+      rows.push(row);
+    }
+    return rows.filter(cells => cells.some(cell => cell.trim() !== ''));
+  }
+
+  function readUsageCsv(text, items) {
+    const lookup = usageLookup(items);
+    const rows = parseCsv(text);
+    if (!rows.length) return { ok: false, entries: {}, skipped: 0, message: 'That file is empty.' };
+    const header = rows[0].map(cell => normalize(cell).trim());
+    const idColumn = header.findIndex(cell => ['benefit', 'benefit id', 'id'].includes(cell));
+    const amountColumn = header.findIndex(cell => ['eligible', 'eligible amount', 'amount', 'amount eligible'].includes(cell));
+    if (idColumn === -1 || amountColumn === -1) {
+      return { ok: false, entries: {}, skipped: 0, message: 'The CSV needs a “benefit” column and an “eligible” amount column.' };
+    }
+    const entries = {};
+    let skipped = 0;
+    for (const row of rows.slice(1)) {
+      const item = resolveUsageBenefit(row[idColumn], lookup);
+      const value = Number(String(row[amountColumn] ?? '').replace(/[$,\s]/g, ''));
+      if (!item || !Number.isFinite(value) || value <= 0 || value > MAX_USAGE_AMOUNT) {
+        skipped += 1;
+        continue;
+      }
+      addUsageEntry(entries, item, value);
+    }
+    if (!Object.keys(entries).length) {
+      return { ok: false, entries: {}, skipped, message: 'No usable benefit amounts were found in that file.' };
+    }
+    return { ok: true, entries, skipped, message: '' };
+  }
+
+  /** Strictly validates a JSON backup; never trusts titles or other display fields. */
   function readUsageExport(text, items) {
-    const byId = new Map(items.map(item => [item.id, item]));
+    const lookup = usageLookup(items);
     let data;
     try {
       data = JSON.parse(text);
@@ -192,18 +294,30 @@
     const entries = {};
     let skipped = 0;
     for (const entry of data.entries) {
-      const id = entry && typeof entry.benefit === 'string' ? entry.benefit : '';
+      const item = resolveUsageBenefit(entry?.benefit, lookup);
       const value = entry ? Number(entry.eligible) : Number.NaN;
-      if (!byId.has(id) || !Number.isFinite(value) || value <= 0 || value > MAX_USAGE_AMOUNT) {
+      if (!item || !Number.isFinite(value) || value <= 0 || value > MAX_USAGE_AMOUNT) {
         skipped += 1;
         continue;
       }
-      entries[id] = Math.round(((entries[id] || 0) + value) * 100) / 100;
+      addUsageEntry(entries, item, value);
     }
     if (!Object.keys(entries).length) {
       return { ok: false, entries: {}, skipped, message: 'No usable benefit amounts were found in that file.' };
     }
     return { ok: true, entries, skipped, message: '' };
+  }
+
+  /** Detect JSON or CSV from the file extension, then the content, so one Load button accepts both. */
+  function readUsageFile(text, items, filename = '') {
+    const trimmed = String(text).replace(/^\uFEFF/, '').trimStart();
+    if (!trimmed) return { ok: false, entries: {}, skipped: 0, message: 'That file is empty.' };
+    const name = String(filename).toLowerCase();
+    if (name.endsWith('.json')) return readUsageExport(text, items);
+    if (name.endsWith('.csv')) return readUsageCsv(text, items);
+    return trimmed.startsWith('{') || trimmed.startsWith('[')
+      ? readUsageExport(text, items)
+      : readUsageCsv(text, items);
   }
 
   function isOddCycleYear(date = new Date()) {
@@ -215,5 +329,5 @@
     return new Intl.NumberFormat('en-CA', {style:'currency', currency:'CAD', maximumFractionDigits:2}).format(number);
   }
 
-  return { normalize, editDistance, filterBenefits, rankBenefits, computeIllustration, usageSummary, createUsageExport, readUsageExport, claimRoute, claimDestinations, isOddCycleYear, formatCurrency };
+  return { normalize, editDistance, filterBenefits, rankBenefits, computeIllustration, usageSummary, createUsageExport, createUsageCsv, parseCsv, readUsageExport, readUsageCsv, readUsageFile, claimRoute, claimDestinations, isOddCycleYear, formatCurrency };
 });

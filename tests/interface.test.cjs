@@ -36,11 +36,15 @@ test('claim routing and content freshness are visible in the interface', () => {
   assert.match(js,/rankBenefits\(/);
 });
 test('usage tracker is present with an accessible progress bar and local-only storage', () => {
-  for (const id of ['usage', 'usage-form', 'usage-benefit', 'usage-amount', 'usage-board', 'usage-summary', 'usage-clear']) {
+  for (const id of ['usage', 'usage-form', 'usage-benefit', 'usage-amount', 'usage-board', 'usage-summary', 'usage-clear', 'usage-export', 'usage-import', 'usage-file', 'usage-file-status']) {
     assert.match(html, new RegExp(`id="${id}"`));
   }
   assert.match(js, /role="progressbar"/);
   assert.match(js, /localStorage/);
   assert.match(js, /pshcp-usage-v1/);
   assert.match(html, /Saved in this browser only/);
+  assert.match(html, /Save to file/);
+  assert.match(html, /Load from file/);
+  assert.match(js, /createUsageExport\(/);
+  assert.match(js, /readUsageExport\(/);
 });

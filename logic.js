@@ -150,6 +150,62 @@
     return { used, cap: eligibleExpenseCap, remaining, overBy, percent, availablePayout };
   }
 
+  const USAGE_FORMAT = 'pshcp-usage';
+  const USAGE_VERSION = 1;
+  const MAX_USAGE_AMOUNT = 9999999999999.99;
+
+  /** Portable, human-readable backup. Contains benefit ids and amounts only. */
+  function createUsageExport(usage, items, date = new Date()) {
+    const byId = new Map(items.map(item => [item.id, item]));
+    const entries = Object.entries(usage)
+      .filter(([id, value]) => byId.has(id) && Number.isFinite(value) && value > 0)
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([id, value]) => ({ benefit: id, title: byId.get(id).title, eligible: Math.round(value * 100) / 100 }));
+    return {
+      app: 'Benefit Atlas',
+      format: USAGE_FORMAT,
+      version: USAGE_VERSION,
+      exportedAt: date.toISOString(),
+      note: 'Your own eligible-expense notes for the PSHCP usage tracker. Not an official PSHCP balance. No plan, member or claim identifiers are included.',
+      entries
+    };
+  }
+
+  /** Strictly validates an imported file; never trusts titles or other display fields. */
+  function readUsageExport(text, items) {
+    const byId = new Map(items.map(item => [item.id, item]));
+    let data;
+    try {
+      data = JSON.parse(text);
+    } catch {
+      return { ok: false, entries: {}, skipped: 0, message: 'That file is not valid JSON.' };
+    }
+    if (!data || typeof data !== 'object' || Array.isArray(data)) {
+      return { ok: false, entries: {}, skipped: 0, message: 'Choose a Benefit Atlas usage file.' };
+    }
+    if (data.format !== USAGE_FORMAT) {
+      return { ok: false, entries: {}, skipped: 0, message: 'This file was not created by the Benefit Atlas usage tracker.' };
+    }
+    if (!Array.isArray(data.entries)) {
+      return { ok: false, entries: {}, skipped: 0, message: 'The file does not contain any usage entries.' };
+    }
+    const entries = {};
+    let skipped = 0;
+    for (const entry of data.entries) {
+      const id = entry && typeof entry.benefit === 'string' ? entry.benefit : '';
+      const value = entry ? Number(entry.eligible) : Number.NaN;
+      if (!byId.has(id) || !Number.isFinite(value) || value <= 0 || value > MAX_USAGE_AMOUNT) {
+        skipped += 1;
+        continue;
+      }
+      entries[id] = Math.round(((entries[id] || 0) + value) * 100) / 100;
+    }
+    if (!Object.keys(entries).length) {
+      return { ok: false, entries: {}, skipped, message: 'No usable benefit amounts were found in that file.' };
+    }
+    return { ok: true, entries, skipped, message: '' };
+  }
+
   function isOddCycleYear(date = new Date()) {
     const year = date.getFullYear();
     return { firstYear: year % 2 ? year : year - 1, lastYear: year % 2 ? year + 1 : year };
@@ -159,5 +215,5 @@
     return new Intl.NumberFormat('en-CA', {style:'currency', currency:'CAD', maximumFractionDigits:2}).format(number);
   }
 
-  return { normalize, editDistance, filterBenefits, rankBenefits, computeIllustration, usageSummary, claimRoute, claimDestinations, isOddCycleYear, formatCurrency };
+  return { normalize, editDistance, filterBenefits, rankBenefits, computeIllustration, usageSummary, createUsageExport, readUsageExport, claimRoute, claimDestinations, isOddCycleYear, formatCurrency };
 });

@@ -8,6 +8,8 @@ This log records visible changes to benefit content and claim guidance. It is no
 
 - Added an optional local tracker that turns entered eligible-expense amounts into a used-versus-remaining bar per benefit.
 - Entries are stored with `localStorage` on the visitor's device, never sent to a server, and can be cleared with one button.
+- Added **Save to file** and **Load from file** for a portable JSON backup, so entries can move between browsers or devices without an account.
+- Imported files are validated strictly; unknown benefit ids and invalid amounts are skipped, and the file contains no plan, member or claim identifiers.
 - Benefit cards and detail panels link into the tracker; no personal or plan identifiers are collected.
 
 **Claim routing**

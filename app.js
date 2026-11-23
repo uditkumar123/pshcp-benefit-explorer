@@ -2,7 +2,7 @@
 (function () {
   'use strict';
   const { benefits, categories, source } = window.PSHCP_DATA;
-  const { rankBenefits, computeIllustration, usageSummary, claimRoute, isOddCycleYear, formatCurrency } = window.PSHCP_LOGIC;
+  const { rankBenefits, computeIllustration, usageSummary, createUsageExport, readUsageExport, claimRoute, isOddCycleYear, formatCurrency } = window.PSHCP_LOGIC;
   const { topics, matchTopic, findTopic, sharedLimits } = window.PSHCP_GUIDE;
   const state = { search: '', category: 'all', coverage: 'supplementary', sort: 'featured', visible: 9 };
   const byId = new Map(benefits.map(benefit => [benefit.id, benefit]));
@@ -25,7 +25,11 @@
     usageError: document.getElementById('usage-error'),
     usageBoard: document.getElementById('usage-board'),
     usageSummary: document.getElementById('usage-summary'),
-    usageClear: document.getElementById('usage-clear')
+    usageClear: document.getElementById('usage-clear'),
+    usageExport: document.getElementById('usage-export'),
+    usageImport: document.getElementById('usage-import'),
+    usageFile: document.getElementById('usage-file'),
+    usageStatus: document.getElementById('usage-file-status')
   };
   let previousFocus = null;
   const number = new Intl.NumberFormat('en-CA');
@@ -316,7 +320,12 @@
       ? `${tracked.length} benefit${tracked.length === 1 ? '' : 's'} tracked · ${formatCurrency(tracked.reduce((sum, item) => sum + usage[item.id], 0))} in eligible expenses recorded.`
       : 'No entries yet. Add a claim to start tracking.';
     nodes.usageClear.hidden = tracked.length === 0;
+    nodes.usageExport.disabled = tracked.length === 0;
     render();
+  }
+  function setUsageStatus(message, isError = false) {
+    nodes.usageStatus.textContent = message;
+    nodes.usageStatus.classList.toggle('is-error', Boolean(isError));
   }
   function focusUsage(id) {
     if (usageBenefits.some(item => item.id === id)) nodes.usageBenefit.value = id;
@@ -347,6 +356,7 @@
     nodes.usageAmount.removeAttribute('aria-invalid');
     usage[id] = Math.round(((usage[id] || 0) + amount) * 100) / 100;
     saveUsage();
+    setUsageStatus('');
     nodes.usageAmount.value = '';
     renderUsage();
     nodes.usageAmount.focus();
@@ -356,6 +366,7 @@
     if (!remove) return;
     delete usage[remove.dataset.remove];
     saveUsage();
+    setUsageStatus('');
     renderUsage();
     nodes.usageBenefit.focus();
   });
@@ -363,7 +374,58 @@
     if (!window.confirm('Remove all tracked usage from this browser?')) return;
     usage = {};
     saveUsage();
+    setUsageStatus('');
     renderUsage();
+    nodes.usageBenefit.focus();
+  });
+  nodes.usageExport.addEventListener('click', () => {
+    if (!Object.keys(usage).length) return;
+    const payload = createUsageExport(usage, usageBenefits);
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `benefit-atlas-usage-${new Date().toISOString().slice(0, 10)}.json`;
+    link.hidden = true;
+    document.body.append(link);
+    link.click();
+    link.remove();
+    window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+    setUsageStatus('Saved a copy to your downloads folder. It contains benefit names and eligible amounts only.');
+  });
+  nodes.usageImport.addEventListener('click', () => nodes.usageFile.click());
+  nodes.usageFile.addEventListener('change', async () => {
+    const file = nodes.usageFile.files?.[0];
+    nodes.usageFile.value = '';
+    if (!file) return;
+    if (file.size > 100 * 1024) {
+      setUsageStatus('That file is too large to be a tracker backup (limit 100 KB).', true);
+      return;
+    }
+    let text;
+    try {
+      text = await file.text();
+    } catch {
+      setUsageStatus('That file could not be read. Try saving it again from this page.', true);
+      return;
+    }
+    const result = readUsageExport(text, usageBenefits);
+    if (!result.ok) {
+      setUsageStatus(result.message, true);
+      return;
+    }
+    if (Object.keys(usage).length && !window.confirm('Replace your current tracked entries with the amounts from this file?')) {
+      setUsageStatus('Load cancelled. Your existing entries were kept.');
+      return;
+    }
+    usage = result.entries;
+    saveUsage();
+    renderUsage();
+    const count = Object.keys(usage).length;
+    const skipped = result.skipped
+      ? ` ${result.skipped} entr${result.skipped === 1 ? 'y was' : 'ies were'} skipped because the benefit was unknown or the amount was invalid.`
+      : '';
+    setUsageStatus(`Loaded ${count} benefit${count === 1 ? '' : 's'} from file.${skipped}`);
     nodes.usageBenefit.focus();
   });
   nodes.search.addEventListener('input', e => {state.search = e.target.value; resetVisible();});

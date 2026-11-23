@@ -9,6 +9,7 @@ A lightweight, accessible, privacy-first web app that helps people explore **Pub
 Use **My usage** to add the **amount eligible** from a processed Canada Life claim. Each tracked benefit shows a bar for used versus remaining eligible expense, the remaining eligible amount, and what that remainder could still reimburse at the standard rate.
 
 - Entries are saved only in this browser (`localStorage`), with no account, plan number, member ID or claim details. Use **Clear all my entries** to remove them.
+- **Save to file** downloads a small JSON backup; **Load from file** restores it in another browser or device. Imports are validated and unknown benefits or invalid amounts are skipped.
 - Only dollar-based limits can be shown as a bar. Frequency limits (for example, one CPAP device every 60 months) and per-day hospital amounts are not tracked.
 - These figures are your own notes, not an official balance. The claim decision and remaining balance come from Canada Life or MSH.
 
@@ -25,14 +26,14 @@ Use **What do you need help with?** to describe an issue (for example `back pain
 
 **Source:** Public Service Health Care Plan Member Booklet (November 2026), printed pp. 39–42 and 80–81, plus applicable individual benefit pages. The PSHCP Directive remains authoritative.
 
-## Features (version 2)
+## Other features
 
 - **Search-first home page:** start with a service or common term instead of browsing a long booklet.
 - **Relevance-ranked search:** direct benefit names and aliases come first, common misspellings are tolerated, and a no-match search can jump straight to the issue finder with the same wording.
 - **Popular benefit shortcuts:** open frequently used entries directly.
 - **Focused detail panel:** a **Before you spend** summary puts the limit type, reset period, documents and claim destination ahead of the calculator.
 - **Claim routing:** a table and per-benefit guidance show whether a claim goes to Canada Life or MSH, including travel emergencies and Comprehensive Coverage abroad.
-- **Usage tracker:** optional local bars for used versus remaining eligible expense, based on amounts you enter.
+- **Usage tracker:** optional local bars for used versus remaining eligible expense, based on amounts you enter, with a JSON backup you can save and reload.
 - **Local, optional calculator:** enters estimated eligible expense and previously used eligible expense cap, with caveats.
 - **Manageable result list:** initially shows 9 benefits with “Show more” and accessible category filters.
 - **Shareable deep links:** `?benefit=psychological` opens a specific benefit.
@@ -58,6 +59,23 @@ Open http://127.0.0.1:4173/. The preview server listens only on this computer an
 ```bash
 npm test
 ```
+
+## End-to-end tests
+
+The browser suite lives in `tests/e2e/` and uses Playwright, kept separate from the dependency-free unit tests. Install the test dependency and Chromium once:
+
+```bash
+npm install
+npx playwright install chromium
+```
+
+Then run:
+
+```bash
+npm run test:e2e
+```
+
+`npm test` and `npm start` still need no installed packages — the app itself remains dependency-free at runtime.
 
 ## GitHub Pages deployment
 
@@ -85,7 +103,7 @@ For a small, moderated comparison with the official coverage guide, see the [pil
 | `logic.js` | Pure testable calculations |
 | `data.js` | Curated, page-referenced benefit entries |
 | `docs/content-changelog.md` | Dated content and claim-routing changes, with review status |
-| `tests/` | Data-integrity, search, routing and behaviour tests |
+| `tests/` | Data-integrity, search, routing and behaviour tests; browser journeys in `tests/e2e/` |
 
 ## Data source and scope
 

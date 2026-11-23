@@ -124,7 +124,10 @@
           </form>
           <div class="usage-board" id="usage-board" aria-live="polite"></div>
         </div>
-        <div class="usage-footer"><p id="usage-summary">No entries yet. Add a claim to start tracking.</p><button id="usage-clear" type="button" class="text-button" hidden>Clear all my entries</button></div>
+        <div class="usage-footer"><p id="usage-summary">No entries yet. Add a claim to start tracking.</p><div class="usage-file-actions"><button id="usage-export" type="button" class="usage-file-button" disabled>Save to file</button><button id="usage-import" type="button" class="usage-file-button">Load from file</button><button id="usage-clear" type="button" class="text-button" hidden>Clear all my entries</button></div></div>
+        <p class="usage-file-note">Entries save automatically in this browser. Use <strong>Save to file</strong> to keep a backup or move them to another browser or device. The file contains benefit names and eligible amounts only — no plan, member or claim details. Treat the file as private, because benefit names can be sensitive.</p>
+        <p class="usage-file-status" id="usage-file-status" role="status" aria-live="polite"></p>
+        <input type="file" id="usage-file" accept=".json,application/json" hidden>
         <p class="usage-caution">Only dollar-based limits can be shown as a bar. Frequency limits (for example, one CPAP device every 60 months) and per-day hospital amounts are not tracked. Use one set of entries per benefit period and clear the tracker when a new calendar year or benefit cycle starts. These figures are your own notes, not an official balance — check Canada Life or MSH for the claim decision.</p>
       </div>
     </section>

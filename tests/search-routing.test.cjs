@@ -1,7 +1,7 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const { benefits } = require('../data.js');
-const { filterBenefits, rankBenefits, claimRoute, claimDestinations, editDistance, usageSummary } = require('../logic.js');
+const { filterBenefits, rankBenefits, claimRoute, claimDestinations, editDistance, usageSummary, createUsageExport, readUsageExport } = require('../logic.js');
 const byId = new Map(benefits.map(b => [b.id, b]));
 
 test('direct name and alias matches rank above incidental mentions', () => {
@@ -68,4 +68,48 @@ test('usage summary reports remaining eligible expense and possible payment', ()
   assert.equal(usageSummary(-1, 500, 80), null);
   assert.equal(usageSummary(100, 0, 80), null);
   assert.equal(usageSummary(100, 500, 80).availablePayout, 320);
+});
+
+test('usage export is sorted, portable and free of plan identifiers', () => {
+  const out = createUsageExport({ physiotherapy: 1250, massage: 125 }, benefits, new Date('2026-11-23T12:00:00Z'));
+  assert.equal(out.format, 'pshcp-usage');
+  assert.equal(out.version, 1);
+  assert.equal(out.exportedAt, '2026-11-23T12:00:00.000Z');
+  assert.deepEqual(Object.keys(out.entries[0]), ['benefit', 'title', 'eligible']);
+  assert.deepEqual(out.entries.map(entry => entry.benefit), ['massage', 'physiotherapy']);
+  assert.equal(out.entries[1].eligible, 1250);
+  assert.equal(out.entries[1].title, 'Physiotherapy');
+  const raw = JSON.stringify(out);
+  assert.ok(!/plan number|member id|certificate/i.test(raw));
+});
+
+test('usage import validates the file and skips unusable entries', () => {
+  const file = JSON.stringify(createUsageExport({ physiotherapy: 1250, massage: 125 }, benefits));
+  const loaded = readUsageExport(file, benefits);
+  assert.equal(loaded.ok, true);
+  assert.equal(loaded.entries.physiotherapy, 1250);
+  assert.equal(loaded.entries.massage, 125);
+  assert.equal(loaded.skipped, 0);
+
+  const mixed = readUsageExport(JSON.stringify({
+    format: 'pshcp-usage',
+    entries: [
+      { benefit: 'physiotherapy', eligible: 100 },
+      { benefit: 'not-a-benefit', eligible: 50 },
+      { benefit: 'massage', eligible: -2 },
+      { benefit: 'massage', eligible: 'oops' },
+      { benefit: 'massage', eligible: 75 },
+      { benefit: 'massage', eligible: 25 }
+    ]
+  }), benefits);
+  assert.equal(mixed.ok, true);
+  assert.equal(mixed.entries.physiotherapy, 100);
+  assert.equal(mixed.entries.massage, 100);
+  assert.equal(mixed.skipped, 3);
+
+  assert.equal(readUsageExport('not json', benefits).ok, false);
+  assert.match(readUsageExport('not json', benefits).message, /valid JSON/);
+  assert.equal(readUsageExport(JSON.stringify({ format: 'other', entries: [] }), benefits).ok, false);
+  assert.match(readUsageExport(JSON.stringify({ format: 'other', entries: [] }), benefits).message, /not created by/);
+  assert.match(readUsageExport(JSON.stringify({ format: 'pshcp-usage', entries: [] }), benefits).message, /No usable/);
 });

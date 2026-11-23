@@ -49,7 +49,7 @@ test('coverage switch adds and removes supplementary-only travel cover', async (
 });
 
 test('benefit dialog is modal, closes with Escape and restores focus', async ({ page }) => {
-  const card = page.getByRole('button', { name: 'Massage therapy' });
+  const card = page.locator('#benefit-grid').getByRole('button', { name: 'Massage therapy' });
   await card.focus();
   await card.press('Enter');
 
@@ -132,6 +132,26 @@ test('claim routing table names the right administrator for travel and Comprehen
   await expect(table.getByRole('row', {
     name: /Comprehensive.*In Canada, including a visit.*Any claim.*Canada Life/
   })).toBeVisible();
+});
+
+test('practitioner guide explains physiotherapy versus massage and opens details', async ({ page }) => {
+  const section = page.locator('#practitioners');
+  await expect(section.getByRole('heading', { name: 'Which practitioner?' })).toBeVisible();
+  await expect(section.getByRole('row')).toHaveCount(15);
+
+  const physiotherapy = section.getByRole('row', { name: /Physiotherapy/ });
+  const massage = section.getByRole('row', { name: /Massage therapy/ });
+  await expect(physiotherapy).toContainText('$1,500');
+  await expect(physiotherapy).toContainText('Separate');
+  await expect(massage).toContainText('$500');
+  await expect(physiotherapy).toContainText(/assess how your body moves/i);
+  await expect(massage).toContainText(/muscles and soft tissues/i);
+
+  await physiotherapy.getByRole('button', { name: 'Physiotherapy' }).click();
+  const dialog = page.getByRole('dialog', { name: 'Physiotherapy' });
+  await expect(dialog).toContainText('What this provider generally does');
+  await expect(dialog).toContainText(/exercise, hands-on treatment and education/i);
+  await expect(dialog).toContainText(/not medical advice/i);
 });
 
 test('usage can be saved to a JSON file and loaded back', async ({ page }) => {

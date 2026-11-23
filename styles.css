@@ -194,6 +194,23 @@ button:disabled { cursor: not-allowed; }
 .directory-note, .finder-note { margin: 1.25rem 0 0; padding: .75rem 1rem; border: 1px solid var(--line); border-radius: var(--radius); background: var(--quiet); color: var(--muted); font-size: .875rem; }
 .directory-note strong, .finder-note strong { color: var(--ink); }
 
+/* Practitioner comparison: what each provider generally does. */
+.practitioner-section { padding-block: clamp(1.875rem, 4vw, 3rem); background: var(--canvas); border-block-start: 1px solid var(--line); }
+.practitioner-scroll { margin-top: 1rem; background: var(--surface); }
+.practitioner-table { min-width: 46rem; }
+.practitioner-table th[scope="row"] { white-space: nowrap; }
+.practitioner-link { border: 0; background: transparent; padding: 0; color: var(--accent); font: inherit; font-weight: 650; text-align: left; text-decoration: underline; text-underline-offset: .18em; }
+.practitioner-link:hover { color: var(--accent-hover); text-decoration-thickness: .12em; }
+.practitioner-table td small { display: block; margin-top: .1875rem; color: var(--muted); font-size: .8125rem; }
+.practitioner-table td strong { color: var(--accent); font-variant-numeric: tabular-nums; }
+.practitioner-note { max-width: 82ch; margin: 1rem 0 0; color: var(--muted); font-size: .875rem; }
+.detail-provider { padding-bottom: 1.125rem; margin-bottom: 1.125rem; border-bottom: 1px solid var(--line); }
+.detail-provider h3 { margin: 0 0 .5rem; font-size: 1.25rem; line-height: 1.25; }
+.detail-provider p { margin-bottom: .625rem; color: var(--muted); font-size: .9375rem; }
+.detail-provider p:last-child { margin-bottom: 0; }
+.detail-provider strong { color: var(--ink); }
+.detail-provider .detail-provider-note { font-size: .875rem; }
+
 /* Plain-language finder */
 .finder-section { background: var(--surface); border-block: 1px solid var(--line); }
 .finder-form { max-width: 56rem; margin-top: 1.25rem; }
@@ -345,6 +362,11 @@ button:disabled { cursor: not-allowed; }
 .estimate-unavailable p { color: var(--muted); font-size: .9375rem; margin-block: .375rem; }
 .estimate-unavailable a { display: inline-flex; align-items: center; min-height: 44px; font-size: .875rem; font-weight: 650; }
 .detail-links, .detail-actions { display: flex; flex-wrap: wrap; gap: .5rem; }
+
+@media (max-width: 75rem) {
+  /* Six main links plus the brand need the space; the Directive is still linked under Sources. */
+  .source-top-link { display: none; }
+}
 
 @media (max-width: 62rem) {
   .benefit-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }

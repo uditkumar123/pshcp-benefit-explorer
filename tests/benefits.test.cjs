@@ -69,3 +69,18 @@ test('spot-check key caps and shared limits against booklet appendix',()=>{
   assert.equal(byId['hospital-one'].rate,100);
   assert.equal(byId.speech.combined,'speech');
 });
+
+test('practitioner benefits explain what the provider does', () => {
+  const byId = Object.fromEntries(benefits.map(b => [b.id, b]));
+  const ids = ['physiotherapy', 'psychological', 'massage', 'chiropractor', 'acupuncture', 'osteopathy', 'naturopathy', 'dietitian', 'occupational', 'lactation', 'nursing', 'footcare', 'speech', 'electrology'];
+  for (const id of ids) {
+    const item = byId[id];
+    assert.ok(item, `${id} missing`);
+    assert.ok(item.whatItIs.length > 40, `${id} needs a provider description`);
+    assert.ok(item.focus.length > 10, `${id} needs a focus summary`);
+  }
+  assert.notEqual(byId.physiotherapy.whatItIs, byId.massage.whatItIs);
+  assert.match(byId.osteopathy.whatItIs, /doctor of osteopathy/i);
+  assert.match(byId.speech.whatItIs, /swallowing/i);
+  assert.match(byId.psychological.whatItIs, /share one PSHCP limit|sharing one PSHCP limit/i);
+});

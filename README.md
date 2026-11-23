@@ -33,6 +33,7 @@ Use **What do you need help with?** to describe an issue (for example `back pain
 - **Popular benefit shortcuts:** open frequently used entries directly.
 - **Focused detail panel:** a **Before you spend** summary puts the limit type, reset period, documents and claim destination ahead of the calculator.
 - **Claim routing:** a table and per-benefit guidance show whether a claim goes to Canada Life or MSH, including travel emergencies and Comprehensive Coverage abroad.
+- **Practitioner guide:** a comparison table and per-benefit descriptions explain what physiotherapy, massage therapy, chiropractic care and other providers generally do, beside each PSHCP limit.
 - **Usage tracker:** optional local bars for used versus remaining eligible expense, based on amounts you enter, with JSON backup and CSV spreadsheet export/import.
 - **Local, optional calculator:** enters estimated eligible expense and previously used eligible expense cap, with caveats.
 - **Manageable result list:** initially shows 9 benefits with “Show more” and accessible category filters.
@@ -87,7 +88,7 @@ npm run test:e2e
 
 For a small, moderated comparison with the official coverage guide, see the [pilot kit](docs/pilot/moderator-guide.md).
 
-- [ ] Ask a PSHCP plan expert to verify the pilot's benefit entries, limits, exceptions, and source links against the current PSHCP Directive. Record what was reviewed and flag gaps; automated tests do not validate plan accuracy.
+- [ ] Ask a PSHCP plan expert to verify the pilot's benefit entries, limits, exceptions, source links, and the plain-language practitioner descriptions against the current PSHCP Directive. Record what was reviewed and flag gaps; automated tests do not validate plan accuracy or clinical accuracy.
 - [ ] Check the app on mobile and desktop, at 200% and 400% zoom, with keyboard only (tab order, focus and Escape), and with a screen reader. Check benefit links and calculator examples too.
 - [ ] Tell pilot participants the app is English-only. For broader sharing, confirm English/French expectations and arrange reviewed French content before inviting a bilingual audience.
 - [ ] Make clear in the invitation that this is an independent reference, not an eligibility decision. Ask participants not to enter or share personal identifiers, plan/certificate numbers, or health information.

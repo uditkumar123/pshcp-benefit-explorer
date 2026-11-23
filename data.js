@@ -23,6 +23,66 @@
     { id: 'travel', label: 'Travel & hospital', icon: '✈' },
     { id: 'dental', label: 'Dental & surgery', icon: '◇' }
   ];
+  // Plain-language descriptions for the practitioner comparison. General information,
+  // not medical advice: scope of practice and titles vary by province and territory.
+  const providerDetails = {
+    physiotherapy: {
+      whatItIs: 'Physiotherapists assess how your body moves, then use exercise, hands-on treatment and education to help you recover or manage a physical condition.',
+      focus: 'Mobility after injury or surgery, joint and muscle pain, balance, and rehabilitation.'
+    },
+    psychological: {
+      whatItIs: 'Psychologists, psychotherapists, social workers and qualified counsellors provide talk-based assessment and treatment. They are different professions with different training, sharing one PSHCP limit.',
+      focus: 'Anxiety, depression, stress, grief, relationships and other mental health concerns.'
+    },
+    massage: {
+      whatItIs: 'Massage therapists work on muscles and soft tissues using hands-on techniques such as pressure, stretching and mobilization.',
+      focus: 'Muscle tension, stiffness and soreness, often alongside other care.'
+    },
+    chiropractor: {
+      whatItIs: 'Chiropractors assess and treat the musculoskeletal system, especially the spine and joints, often with manual adjustment and exercise guidance.',
+      focus: 'Back, neck and joint pain, and movement problems.'
+    },
+    acupuncture: {
+      whatItIs: 'Acupuncturists place thin, sterile needles at specific points on the body. Training and regulation differ across provinces and territories.',
+      focus: 'Pain and symptom management.'
+    },
+    osteopathy: {
+      whatItIs: 'Osteopathic manual practitioners use hands-on assessment and manipulation of joints, muscles and tissues. In Canada this is different from a US doctor of osteopathy (DO).',
+      focus: 'Musculoskeletal pain and restricted movement.'
+    },
+    naturopathy: {
+      whatItIs: 'Naturopathic doctors assess health and may combine nutrition, lifestyle guidance and natural remedies. The plan requires recognized qualifications.',
+      focus: 'General health concerns and prevention.'
+    },
+    dietitian: {
+      whatItIs: 'Dietitians assess nutrition needs and provide counselling on eating, meal planning and managing a health condition.',
+      focus: 'Diabetes, heart health, digestive conditions and food allergies.'
+    },
+    occupational: {
+      whatItIs: 'Occupational therapists help with everyday activities, work and self-care by adapting tasks, environments or equipment.',
+      focus: 'Recovery after injury, ergonomics and adaptive equipment.'
+    },
+    lactation: {
+      whatItIs: 'Lactation consultants provide assessment and practical support for breastfeeding and chestfeeding, including latch and supply concerns.',
+      focus: 'Newborn feeding, pumping and postpartum support.'
+    },
+    nursing: {
+      whatItIs: 'Private nursing provides medically necessary care at home by a licensed nurse, such as wound care, injections or monitoring.',
+      focus: 'Post-hospital recovery and ongoing home care. A prescription is required.'
+    },
+    footcare: {
+      whatItIs: 'Podiatrists and chiropodists assess and treat foot and lower-leg conditions, including nails, skin, gait and custom orthotics. The protected titles differ by province.',
+      focus: 'Heel and arch pain, nail problems and foot care related to diabetes.'
+    },
+    speech: {
+      whatItIs: 'Speech-language pathologists assess communication and swallowing. Audiologists assess hearing and hearing-related needs. Both share one PSHCP limit.',
+      focus: 'Speech, language, voice and swallowing; hearing tests and hearing aids.'
+    },
+    electrology: {
+      whatItIs: 'Electrologists remove hair using a fine electric current applied to the hair follicle.',
+      focus: 'The plan covers eligible electrolysis for excessive facial or neck hair under specific conditions.'
+    }
+  };
   function benefit(id, title, category, limit, period, pages, notes, opts = {}) {
     return {
       id, title, category, limit, period, pages, notes,
@@ -36,6 +96,8 @@
       featured: opts.featured ?? false,
       submit: opts.submit ?? null,
       directiveRef: opts.directiveRef ?? null,
+      whatItIs: opts.whatItIs ?? providerDetails[id]?.whatItIs ?? '',
+      focus: opts.focus ?? providerDetails[id]?.focus ?? '',
       ...(opts.noEstimate ? { noEstimate: true } : {})
     };
   }

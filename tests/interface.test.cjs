@@ -35,6 +35,13 @@ test('claim routing and content freshness are visible in the interface', () => {
   assert.match(js,/claimRoute\(/);
   assert.match(js,/rankBenefits\(/);
 });
+test('practitioner comparison is present and wired to benefit details', () => {
+  assert.match(html, /id="practitioners"/);
+  assert.match(html, /id="practitioner-rows"/);
+  assert.match(html, /Which practitioner\?/);
+  assert.match(js, /renderPractitioners\(/);
+  assert.match(js, /whatItIs/);
+});
 test('usage tracker is present with an accessible progress bar and local-only storage', () => {
   for (const id of ['usage', 'usage-form', 'usage-benefit', 'usage-amount', 'usage-board', 'usage-summary', 'usage-clear', 'usage-export', 'usage-export-csv', 'usage-import', 'usage-file', 'usage-file-status']) {
     assert.match(html, new RegExp(`id="${id}"`));

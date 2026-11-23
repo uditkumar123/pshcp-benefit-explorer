@@ -28,6 +28,8 @@ This log records visible changes to benefit content and claim guidance. It is no
 **Benefit details**
 
 - Added a "Before you spend" summary covering whether the limit is separate or shared, when it resets, required documents and approvals, and where the claim goes.
+- Added plain-language descriptions of what each practitioner generally does and what they often focus on, shown inside benefit details.
+- Added a practitioner comparison table so physiotherapy, massage therapy, chiropractic care and other providers can be compared beside their PSHCP limits.
 - Added Directive cross-references where the booklet summary alone is not enough (hospital room levels, hospital care outside Canada).
 
 **Freshness**
@@ -38,5 +40,6 @@ This log records visible changes to benefit content and claim guidance. It is no
 ## Review status
 
 - Benefit entries were checked against the **PSHCP Member Booklet, November 2026** during this update. That is a self-review, not an independent plan-expert verification.
+- Practitioner descriptions are general summaries of each profession's usual role. They are not medical advice and have not been clinically reviewed; scope of practice varies by province and territory.
 - Claim routing was checked against the PSHCP Administration Authority's published claim instructions and Bulletins 49 and 53 (October 2024 and September 2026).
 - Independent review by a PSHCP plan expert is still required before wider sharing. See the pilot checklist in the project README.

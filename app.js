@@ -13,6 +13,7 @@
     categorySelect: document.getElementById('category-select'),
     grid: document.getElementById('benefit-grid'),
     count: document.getElementById('result-count'),
+    practitionerRows: document.getElementById('practitioner-rows'),
     empty: document.getElementById('empty-state'),
     load: document.getElementById('load-more'),
     reset: document.getElementById('reset-filters'),
@@ -51,6 +52,20 @@
   nodes.filters.innerHTML = categories.map(cat => `<button type="button" class="category-button" data-category="${cat.id}" aria-pressed="${state.category === cat.id}"><svg class="category-icon" viewBox="0 0 20 20" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="${categoryIcons[cat.id] || categoryIcons.all}"/></svg>${escapeHTML(cat.label)}</button>`).join('');
   nodes.categorySelect.innerHTML = categories.map(cat => `<option value="${escapeHTML(cat.id)}">${escapeHTML(cat.label)}</option>`).join('');
   const categoryButtons = nodes.filters.querySelectorAll('[data-category]');
+
+  function renderPractitioners() {
+    const rows = benefits.filter(item => item.whatItIs).map(item => `<tr>
+      <th scope="row"><button type="button" class="practitioner-link" data-benefit="${escapeHTML(item.id)}">${escapeHTML(item.title)}</button></th>
+      <td>${escapeHTML(item.whatItIs)}</td>
+      <td>${escapeHTML(item.focus)}</td>
+      <td><strong>${escapeHTML(item.limit)}</strong><small>${item.combined ? 'Shared' : 'Separate'} · ${escapeHTML(item.period)}</small></td>
+    </tr>`).join('');
+    nodes.practitionerRows.innerHTML = rows;
+  }
+  nodes.practitionerRows.addEventListener('click', event => {
+    const selected = event.target.closest('[data-benefit]');
+    if (selected) openBenefit(selected.dataset.benefit);
+  });
 
   function updateCategories() {
     if (nodes.categorySelect.value !== state.category) nodes.categorySelect.value = state.category;
@@ -151,6 +166,7 @@
       <p class="detail-intro" id="dialog-intro">${escapeHTML(item.notes)}</p>
       ${outOfScope ? '<p class="scope-warning">This benefit is not shown for your selected coverage type. Verify which PSHCP coverage you have.</p>' : ''}
       <div class="detail-facts"><div><small>Maximum eligible expense / limit</small><strong>${escapeHTML(item.limit)}</strong><span>${escapeHTML(item.period)}</span></div><div><small>Standard reimbursement rate</small><strong>${item.rate}%</strong><span>Of eligible expenses, subject to conditions</span></div></div>
+      ${item.whatItIs ? `<section class="detail-provider"><h3>What this provider generally does</h3><p>${escapeHTML(item.whatItIs)}</p>${item.focus ? `<p><strong>Often focuses on:</strong> ${escapeHTML(item.focus)}</p>` : ''}<p class="detail-provider-note">General description, not medical advice. Scope of practice and protected titles vary by province or territory.</p></section>` : ''}
       ${beforeYouSpend(item)}
       ${estimateMarkup(item)}
       <section class="detail-sources"><h3>Check the original source</h3><p>Member booklet, November 2026, printed page${item.pages.length === 1 ? '' : 's'} ${item.pages.join(', ')}. Entries checked ${escapeHTML(source.updated)}. The Directive applies if the two documents differ.</p>${item.directiveRef ? `<p class="directive-ref">${escapeHTML(item.directiveRef)} also applies. Read the governing provision before relying on this summary.</p>` : ''}<div class="detail-links">${links(item)}<a href="${source.directive}" target="_blank" rel="noopener noreferrer">PSHCP Directive <span aria-hidden="true">↗</span></a></div></section>
@@ -547,6 +563,7 @@
     event.preventDefault();
     nodes.search.focus();
   });
+  renderPractitioners();
   renderUsage();
   const requestedId = new URLSearchParams(window.location.search).get('benefit');
   if (requestedId && byId.has(requestedId)) openBenefit(requestedId, {updateAddress:false});

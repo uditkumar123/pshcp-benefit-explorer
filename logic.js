@@ -7,15 +7,102 @@
   function normalize(value) {
     return String(value || '').toLocaleLowerCase('en-CA').normalize('NFKD').replace(/[\u0300-\u036f]/g, '');
   }
+
+  /** Bounded Levenshtein distance, used only to forgive small typos. */
+  function editDistance(a, b) {
+    if (a === b) return 0;
+    if (Math.abs(a.length - b.length) > 2) return 3;
+    let previous = Array.from({ length: b.length + 1 }, (_, index) => index);
+    for (let row = 1; row <= a.length; row += 1) {
+      const current = [row];
+      for (let column = 1; column <= b.length; column += 1) {
+        const cost = a[row - 1] === b[column - 1] ? 0 : 1;
+        current[column] = Math.min(previous[column] + 1, current[column - 1] + 1, previous[column - 1] + cost);
+      }
+      previous = current;
+    }
+    return previous[b.length];
+  }
+
+  const words = value => normalize(value).split(/[^a-z0-9]+/).filter(Boolean);
+  const textCache = new WeakMap();
+
+  /** Normalized, word-level view of a benefit so every keystroke does not re-split it. */
+  function searchText(item) {
+    if (!textCache.has(item)) {
+      const title = normalize(item.title);
+      const aliases = normalize(item.searchable);
+      const rest = normalize([item.limit, item.period, item.notes, item.docs].join(' '));
+      textCache.set(item, {
+        title, aliases, rest,
+        titleWords: words(title),
+        aliasWords: words(aliases),
+        restWords: words(rest)
+      });
+    }
+    return textCache.get(item);
+  }
+
+  /** 0 means "no match". Higher scores mean a more direct name or alias match. */
+  function tokenScore(token, item) {
+    const text = searchText(item);
+    if (text.title === token) return 200;
+    if (text.titleWords.includes(token)) return 120;
+    if (text.title.includes(token)) return 90;
+    if (text.aliasWords.includes(token)) return 70;
+    if (text.aliases.includes(token)) return 55;
+    if (text.restWords.includes(token)) return 30;
+
+    const allowance = token.length >= 8 ? 2 : token.length >= 5 ? 1 : 0;
+    if (!allowance) return 0;
+    for (const candidate of [...text.titleWords, ...text.aliasWords]) {
+      if (candidate.length < 4 || Math.abs(candidate.length - token.length) > allowance) continue;
+      const distance = editDistance(token, candidate);
+      if (distance <= allowance) return distance === 1 ? 45 : 38;
+    }
+    return 0;
+  }
+
+  function scoreBenefit(item, tokens) {
+    let total = 0;
+    for (const token of tokens) {
+      const score = tokenScore(token, item);
+      if (!score) return 0;
+      total += score;
+    }
+    return total;
+  }
+
+  const searchTokens = search => normalize(search).trim().split(/\s+/).filter(Boolean);
+
   function filterBenefits(data, { search = '', category = 'all', coverage = 'supplementary' } = {}) {
-    const tokens = normalize(search).trim().split(/\s+/).filter(Boolean);
+    const tokens = searchTokens(search);
     return data.filter(item => {
       if (category !== 'all' && item.category !== category) return false;
       if (!item.planTypes.includes(coverage)) return false;
-      const haystack = normalize([item.title,item.limit,item.period,item.notes,item.searchable,item.docs].join(' '));
-      return tokens.every(token => haystack.includes(token));
+      return tokens.every(token => tokenScore(token, item) > 0);
     });
   }
+
+  /**
+   * Ordered results: best name/alias match first, then popular, then A–Z.
+   * Choosing A–Z still wins when the visitor asks for it.
+   */
+  function rankBenefits(data, { search = '', category = 'all', coverage = 'supplementary', sort = 'featured' } = {}) {
+    const tokens = searchTokens(search);
+    const scored = filterBenefits(data, { search, category, coverage }).map(item => ({
+      item,
+      score: tokens.length ? scoreBenefit(item, tokens) : 0
+    }));
+    const byTitle = (a, b) => a.item.title.localeCompare(b.item.title, 'en-CA');
+    scored.sort((a, b) => {
+      if (sort === 'az') return byTitle(a, b);
+      if (b.score !== a.score) return b.score - a.score;
+      return Number(b.item.featured) - Number(a.item.featured) || byTitle(a, b);
+    });
+    return scored.map(entry => entry.item);
+  }
+
   function computeIllustration({ price, alreadyUsed = 0, eligibleExpenseCap, rate = 80 }) {
     if (![price, alreadyUsed, eligibleExpenseCap, rate].every(v => Number.isFinite(v))) return null;
     if (price < 0 || alreadyUsed < 0 || eligibleExpenseCap < 0 || rate < 0 || rate > 100) return null;
@@ -25,12 +112,52 @@
     const memberPays = Math.round((price - planPays) * 100) / 100;
     return { remainingEligible, claimEligible, planPays, memberPays };
   }
+
+  const claimDestinations = {
+    'canada-life': {
+      key: 'canada-life',
+      provider: 'Canada Life',
+      url: 'https://www.canadalife.com/pshcp',
+      detail: 'Non-emergency claims, including expenses incurred in Canada and, for Supplementary Coverage, non-emergency expenses incurred outside Canada.'
+    },
+    'msh-emergency': {
+      key: 'msh-emergency',
+      provider: 'MSH International',
+      url: 'https://pshcp-msh.ca/',
+      detail: 'Emergency travel assistance claims for Supplementary Coverage. For urgent help, call MSH’s 24-hour line before or while receiving care.'
+    },
+    'msh-comprehensive': {
+      key: 'msh-comprehensive',
+      provider: 'MSH International',
+      url: 'https://pshcp-msh.ca/',
+      detail: 'Claims for expenses incurred outside Canada under Comprehensive Coverage. Expenses incurred while visiting Canada go to Canada Life instead.'
+    }
+  };
+
+  /** Which administrator receives a claim, given the benefit and the selected coverage. */
+  function claimRoute(item, coverage = 'supplementary') {
+    const key = item.submit
+      || (item.planTypes.length === 1 && item.planTypes[0] === 'comprehensive' ? 'msh-comprehensive' : 'canada-life');
+    return { ...claimDestinations[key], coverage };
+  }
+
+  function usageSummary(used, eligibleExpenseCap, rate = 80) {
+    if (![used, eligibleExpenseCap, rate].every(Number.isFinite) || used < 0 || eligibleExpenseCap <= 0) return null;
+    const remaining = Math.max(0, eligibleExpenseCap - used);
+    const overBy = Math.max(0, used - eligibleExpenseCap);
+    const percent = Math.min(100, Math.round((used / eligibleExpenseCap) * 1000) / 10);
+    const availablePayout = Math.round(remaining * rate) / 100;
+    return { used, cap: eligibleExpenseCap, remaining, overBy, percent, availablePayout };
+  }
+
   function isOddCycleYear(date = new Date()) {
     const year = date.getFullYear();
     return { firstYear: year % 2 ? year : year - 1, lastYear: year % 2 ? year + 1 : year };
   }
+
   function formatCurrency(number) {
     return new Intl.NumberFormat('en-CA', {style:'currency', currency:'CAD', maximumFractionDigits:2}).format(number);
   }
-  return { normalize, filterBenefits, computeIllustration, isOddCycleYear, formatCurrency };
+
+  return { normalize, editDistance, filterBenefits, rankBenefits, computeIllustration, usageSummary, claimRoute, claimDestinations, isOddCycleYear, formatCurrency };
 });

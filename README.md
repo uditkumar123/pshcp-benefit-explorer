@@ -4,6 +4,14 @@ A lightweight, accessible, privacy-first web app that helps people explore **Pub
 
 > Independent informational tool. Not affiliated with the Government of Canada, the PSHCP, Canada Life or MSH International. The booklet is a summary; the PSHCP Directive controls if there is a discrepancy. **No live coverage verification or account balances.**
 
+## Usage tracker (version 4)
+
+Use **My usage** to add the **amount eligible** from a processed Canada Life claim. Each tracked benefit shows a bar for used versus remaining eligible expense, the remaining eligible amount, and what that remainder could still reimburse at the standard rate.
+
+- Entries are saved only in this browser (`localStorage`), with no account, plan number, member ID or claim details. Use **Clear all my entries** to remove them.
+- Only dollar-based limits can be shown as a bar. Frequency limits (for example, one CPAP device every 60 months) and per-day hospital amounts are not tracked.
+- These figures are your own notes, not an official balance. The claim decision and remaining balance come from Canada Life or MSH.
+
 ## Guided issue finder (version 3)
 
 Use **What do you need help with?** to describe an issue (for example `back pain`, `anxiety`, `foot pain`, or `sleep apnea`) or choose a topic button. The interface offers **possible benefit categories to explore**, not medical diagnoses, prescriptions, coverage approvals, or personalized eligibility determinations.
@@ -20,8 +28,11 @@ Use **What do you need help with?** to describe an issue (for example `back pain
 ## Features (version 2)
 
 - **Search-first home page:** start with a service or common term instead of browsing a long booklet.
+- **Relevance-ranked search:** direct benefit names and aliases come first, common misspellings are tolerated, and a no-match search can jump straight to the issue finder with the same wording.
 - **Popular benefit shortcuts:** open frequently used entries directly.
-- **Focused detail panel:** eligibility notes, limits, reimbursement rates, conditions, and page-level sources in one place.
+- **Focused detail panel:** a **Before you spend** summary puts the limit type, reset period, documents and claim destination ahead of the calculator.
+- **Claim routing:** a table and per-benefit guidance show whether a claim goes to Canada Life or MSH, including travel emergencies and Comprehensive Coverage abroad.
+- **Usage tracker:** optional local bars for used versus remaining eligible expense, based on amounts you enter.
 - **Local, optional calculator:** enters estimated eligible expense and previously used eligible expense cap, with caveats.
 - **Manageable result list:** initially shows 9 benefits with “Show more” and accessible category filters.
 - **Shareable deep links:** `?benefit=psychological` opens a specific benefit.
@@ -31,7 +42,7 @@ Use **What do you need help with?** to describe an issue (for example `back pain
 - Open a specific **printed source page** in the official Member Booklet PDF from each benefit.
 - Optional, clearly qualified reimbursement **illustration** for simple numeric eligible expense caps.
 - Know which claims generally go to **Canada Life** vs **MSH**.
-- Fully static: no login, database, API keys, analytics, cookies, or data transmission.
+- Fully static: no login, database, API keys, analytics or cookies. Optional usage entries stay in this browser and are never transmitted.
 - Keyboard-friendly layout with semantic controls, focus indicators and reduced-motion support.
 
 ## Quick start
@@ -73,7 +84,8 @@ For a small, moderated comparison with the official coverage guide, see the [pil
 | `app.js` | Search, progressive results, accessible benefit panel and shareable links |
 | `logic.js` | Pure testable calculations |
 | `data.js` | Curated, page-referenced benefit entries |
-| `tests/` | Data-integrity and behaviour tests |
+| `docs/content-changelog.md` | Dated content and claim-routing changes, with review status |
+| `tests/` | Data-integrity, search, routing and behaviour tests |
 
 ## Data source and scope
 

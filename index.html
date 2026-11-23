@@ -22,7 +22,7 @@
         <span>Benefit <span class="brand-accent">Atlas</span><small>Independent PSHCP reference</small></span>
       </a>
       <nav class="top-nav" aria-label="Main navigation">
-        <a href="#explore">Benefits</a><a href="#help-finder">Search by issue</a>
+        <a href="#explore">Benefits</a><a href="#help-finder">Search by issue</a><a href="#usage">My usage</a>
         <a href="#claim-help">Claims</a>
         <a href="#sources">Sources</a>
       </nav>
@@ -84,7 +84,7 @@
               <div class="results-controls"><button id="reset-filters" type="button" class="text-button" hidden>Clear search and filters</button><label for="benefit-sort">Sort by <select id="benefit-sort"><option value="featured">Popular first</option><option value="az">A–Z</option></select></label></div>
             </div>
             <div class="benefit-grid" id="benefit-grid"></div>
-            <div class="no-results" id="empty-state" hidden><div class="empty-icon" aria-hidden="true">⌕</div><h3>No matches found</h3><p>Try a different search or browse all categories.</p><button type="button" id="clear-filters">Show all benefits</button></div>
+            <div class="no-results" id="empty-state" hidden><h3 id="empty-title">No matches found</h3><p id="empty-message">Try a different search or browse all categories.</p><div class="empty-actions"><button type="button" id="clear-filters">Show all benefits</button><button type="button" id="try-issue" class="primary-button" hidden>Try Search by issue</button></div></div>
             <div class="load-more-wrap"><button type="button" class="load-more" id="load-more" hidden>Show more benefits <span aria-hidden="true">↓</span></button></div>
           </div>
         </div>
@@ -105,29 +105,69 @@
       </div>
     </section>
 
+    <section class="usage-section" id="usage" aria-labelledby="usage-title">
+      <div class="container">
+        <div class="section-header">
+          <div><span class="section-kicker">PLAN PERIOD</span><h2 id="usage-title">What have you used?</h2><p>Add the <strong>amount eligible</strong> from a processed Canada Life claim to see how much of each dollar limit remains. No plan, member or certificate numbers are needed.</p></div>
+          <span class="edition">Saved in this browser only</span>
+        </div>
+        <div class="usage-layout">
+          <form class="usage-form" id="usage-form" novalidate>
+            <h3>Add a processed claim</h3>
+            <label for="usage-benefit">Benefit</label>
+            <select id="usage-benefit"></select>
+            <label for="usage-amount">Amount eligible ($)</label>
+            <input id="usage-amount" type="number" min="0.01" step="0.01" inputmode="decimal" required>
+            <button type="submit">Add to my usage</button>
+            <p class="usage-error" id="usage-error" hidden></p>
+            <p class="usage-hint">Use the “Amount eligible” column, not “Paid”. Limits apply to eligible expenses before the reimbursement rate.</p>
+          </form>
+          <div class="usage-board" id="usage-board" aria-live="polite"></div>
+        </div>
+        <div class="usage-footer"><p id="usage-summary">No entries yet. Add a claim to start tracking.</p><button id="usage-clear" type="button" class="text-button" hidden>Clear all my entries</button></div>
+        <p class="usage-caution">Only dollar-based limits can be shown as a bar. Frequency limits (for example, one CPAP device every 60 months) and per-day hospital amounts are not tracked. Use one set of entries per benefit period and clear the tracker when a new calendar year or benefit cycle starts. These figures are your own notes, not an official balance — check Canada Life or MSH for the claim decision.</p>
+      </div>
+    </section>
+
     <section class="how-section" id="claim-help" aria-labelledby="claim-title">
       <div class="container">
         <span class="section-kicker">CLAIMS</span>
         <h2 id="claim-title">How to submit a claim</h2>
         <div class="steps">
-          <article><span class="step-number">01</span><h3>Check the details</h3><p>Open a benefit and review the eligible expense limit, timing, and documents or approvals it may require.</p></article>
-          <article><span class="step-number">02</span><h3>Check your actual coverage</h3><p>Sign in to Canada Life to check your balance and reasonable and customary charges before spending.</p></article>
-          <article><span class="step-number">03</span><h3>Submit to the right place</h3><p>Most regular claims go to Canada Life. MSH handles emergency travel assistance and Comprehensive Coverage claims.</p></article>
+          <article><span class="step-number">01</span><h3>Check the details</h3><p>Open a benefit and review the eligible expense limit, when it resets, and the documents or approvals it may require.</p></article>
+          <article><span class="step-number">02</span><h3>Check your actual coverage</h3><p>Sign in to Canada Life or MSH to check your balance and reasonable and customary charges before spending.</p></article>
+          <article><span class="step-number">03</span><h3>Submit to the right place</h3><p>Most claims go to Canada Life. MSH handles travel emergencies and expenses incurred outside Canada under Comprehensive Coverage. Use the table below.</p></article>
         </div>
-        <div class="claim-actions"><div><h3>Claims portals</h3><p>Complete positive enrolment before claiming. Provincial, territorial, or other required primary coverage may need to pay first.</p></div><div class="claim-buttons"><a href="https://www.canadalife.com/pshcp" target="_blank" rel="noopener noreferrer">Canada Life <span aria-hidden="true">↗</span></a><a href="https://pshcp-msh.ca/" target="_blank" rel="noopener noreferrer">MSH portal <span aria-hidden="true">↗</span></a></div></div>
+        <div class="claim-routing">
+          <div class="claim-routing-head"><h3>Where to submit a claim</h3><p>Applies to non-emergency claims unless marked as a travel emergency. Check the <a href="https://pshcp.ca/claims/how-to-submit-a-paper-claim" target="_blank" rel="noopener noreferrer">official claim instructions <span aria-hidden="true">↗</span></a> before sending documents.</p></div>
+          <div class="table-scroll">
+            <table>
+              <caption class="sr-only">Claim destination by coverage type, location of the expense, and claim type</caption>
+              <thead><tr><th scope="col">Coverage</th><th scope="col">Where the expense occurred</th><th scope="col">Claim type</th><th scope="col">Submit to</th></tr></thead>
+              <tbody>
+                <tr><th scope="row">Supplementary</th><td>In Canada</td><td>Any non-emergency claim</td><td><strong>Canada Life</strong></td></tr>
+                <tr><th scope="row">Supplementary</th><td>Outside Canada</td><td>Non-emergency</td><td><strong>Canada Life</strong></td></tr>
+                <tr><th scope="row">Supplementary</th><td>Outside your province or territory</td><td>Travel emergency</td><td><strong>MSH International</strong></td></tr>
+                <tr><th scope="row">Comprehensive</th><td>Outside Canada</td><td>Any claim</td><td><strong>MSH International</strong></td></tr>
+                <tr><th scope="row">Comprehensive</th><td>In Canada, including a visit</td><td>Any claim</td><td><strong>Canada Life</strong></td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="claim-deadline"><div><h3>Deadlines and emergency help</h3><p>Claims must reach the administrator by December 31 of the year following the year the expense was incurred. Emergency travel assistance is available 24 hours a day: North America toll-free <a href="tel:+18337742700">1-833-774-2700</a>; international collect <a href="tel:+13653377427">1-365-337-7427</a>.</p></div><div class="claim-buttons"><a href="https://www.canadalife.com/pshcp" target="_blank" rel="noopener noreferrer">Canada Life <span aria-hidden="true">↗</span></a><a href="https://pshcp-msh.ca/" target="_blank" rel="noopener noreferrer">MSH portal <span aria-hidden="true">↗</span></a></div></div>
+        </div>
       </div>
     </section>
 
-    <section class="sources-section" id="sources" aria-labelledby="sources-title"><div class="container source-inner"><div><span class="section-kicker">SOURCE &amp; SCOPE</span><h2 id="sources-title">Plan documents</h2><p>Every benefit links to pages in the <strong>PSHCP Member Booklet (November 2026)</strong>. If the booklet and the PSHCP Directive disagree, the Directive governs. Benefit Atlas is an independent reference tool, not an official eligibility decision or live account balance.</p><small>Not affiliated with or endorsed by the Government of Canada, the PSHCP, Canada Life, or MSH International.</small></div><div class="source-actions"><a href="https://www.canadalife.com/content/dam/rfp/welcome-sites/pshcp/PSHCP-member-booklet.pdf" target="_blank" rel="noopener noreferrer">Read the member booklet <span aria-hidden="true">↗</span></a><a href="https://www.njc-cnm.gc.ca/directive/d9/v283/en" target="_blank" rel="noopener noreferrer">Read the PSHCP Directive <span aria-hidden="true">↗</span></a></div></div></section>
+    <section class="sources-section" id="sources" aria-labelledby="sources-title"><div class="container source-inner"><div><span class="section-kicker">SOURCE &amp; SCOPE</span><h2 id="sources-title">Plan documents</h2><p>Every benefit links to pages in the <strong>PSHCP Member Booklet (November 2026)</strong>. If the booklet and the PSHCP Directive disagree, the Directive governs. Benefit Atlas is an independent reference tool, not an official eligibility decision or live account balance.</p><ul class="source-meta"><li>Benefit entries checked against the November 2026 booklet on <strong>23 November 2026</strong>.</li><li>This pilot is English-only; reviewed French content is not yet available.</li><li><a href="https://github.com/uditkumar123/pshcp-benefit-explorer/blob/main/docs/content-changelog.md" target="_blank" rel="noopener noreferrer">See what changed and when <span aria-hidden="true">↗</span></a></li></ul><small>Not affiliated with or endorsed by the Government of Canada, the PSHCP, Canada Life, or MSH International.</small></div><div class="source-actions"><a href="https://www.canadalife.com/content/dam/rfp/welcome-sites/pshcp/PSHCP-member-booklet.pdf" target="_blank" rel="noopener noreferrer">Read the member booklet <span aria-hidden="true">↗</span></a><a href="https://www.njc-cnm.gc.ca/directive/d9/v283/en" target="_blank" rel="noopener noreferrer">Read the PSHCP Directive <span aria-hidden="true">↗</span></a><a href="https://pshcp.ca/" target="_blank" rel="noopener noreferrer">PSHCP Administration Authority <span aria-hidden="true">↗</span></a></div></div></section>
   </main>
 
   <dialog class="benefit-dialog" id="benefit-dialog" aria-labelledby="dialog-title" aria-describedby="dialog-intro">
     <div class="dialog-shell">
-      <div class="dialog-top"><span class="dialog-overline">BENEFIT DETAILS</span><button class="dialog-close" type="button" id="close-dialog" aria-label="Close benefit details">×</button></div>
+      <div class="dialog-top"><span class="dialog-overline">BENEFIT DETAILS</span><button class="dialog-close" type="button" id="close-dialog" aria-label="Close benefit details"><svg viewBox="0 0 20 20" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true" focusable="false"><path d="m5 5 10 10M15 5 5 15"/></svg><span>Close</span></button></div>
       <div class="dialog-scroll" id="dialog-content"></div>
     </div>
   </dialog>
 
-  <footer class="footer"><div class="container footer-inner"><div class="footer-brand">Benefit <span>Atlas</span></div><p>Independent PSHCP reference.</p><a href="#top">Back to top ↑</a></div></footer>
+  <footer class="footer"><div class="container footer-inner"><div class="footer-brand">Benefit <span>Atlas</span></div><p>Independent PSHCP reference. English-only pilot. Content updated <time datetime="2026-11-23">23 November 2026</time>.</p><a href="#top">Back to top ↑</a></div></footer>
 </body>
 </html>

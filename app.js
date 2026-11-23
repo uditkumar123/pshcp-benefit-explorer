@@ -2,7 +2,7 @@
 (function () {
   'use strict';
   const { benefits, categories, source } = window.PSHCP_DATA;
-  const { filterBenefits, computeIllustration, isOddCycleYear, formatCurrency } = window.PSHCP_LOGIC;
+  const { rankBenefits, computeIllustration, usageSummary, claimRoute, isOddCycleYear, formatCurrency } = window.PSHCP_LOGIC;
   const { topics, matchTopic, findTopic, sharedLimits } = window.PSHCP_GUIDE;
   const state = { search: '', category: 'all', coverage: 'supplementary', sort: 'featured', visible: 9 };
   const byId = new Map(benefits.map(benefit => [benefit.id, benefit]));
@@ -18,16 +18,21 @@
     reset: document.getElementById('reset-filters'),
     dialog: document.getElementById('benefit-dialog'),
     detail: document.getElementById('dialog-content'),
-    coverageNote: document.getElementById('coverage-explainer')
+    coverageNote: document.getElementById('coverage-explainer'),
+    usageForm: document.getElementById('usage-form'),
+    usageBenefit: document.getElementById('usage-benefit'),
+    usageAmount: document.getElementById('usage-amount'),
+    usageError: document.getElementById('usage-error'),
+    usageBoard: document.getElementById('usage-board'),
+    usageSummary: document.getElementById('usage-summary'),
+    usageClear: document.getElementById('usage-clear')
   };
   let previousFocus = null;
   const number = new Intl.NumberFormat('en-CA');
   const escapeHTML = value => String(value).replace(/[&<>"']/g, match => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[match]));
 
   function getMatches() {
-    const filtered = filterBenefits(benefits, state).slice();
-    if (state.sort === 'az') return filtered.sort((a, b) => a.title.localeCompare(b.title, 'en-CA'));
-    return filtered.sort((a, b) => Number(b.featured) - Number(a.featured) || a.title.localeCompare(b.title, 'en-CA'));
+    return rankBenefits(benefits, state);
   }
   const categoryIcons = {
     all: 'M3 3h5v5H3z M12 3h5v5h-5z M3 12h5v5H3z M12 12h5v5h-5z',
@@ -55,6 +60,7 @@
       <span class="card-top"><span class="card-category">${escapeHTML(category.label)}</span><svg class="card-chevron" viewBox="0 0 20 20" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="m8 5 5 5-5 5"/></svg></span>
       <h3 class="card-title"><button type="button" class="card-title-button" data-benefit="${escapeHTML(item.id)}">${escapeHTML(item.title)}</button></h3>
       <span class="card-limit"><strong>${escapeHTML(item.limit)}</strong><small>${escapeHTML(item.period)}</small></span>
+      ${cardUsage(item)}
       <span class="card-description">${escapeHTML(item.notes)}</span>
       <span class="card-bottom"><span>${item.rate}% of eligible expenses</span></span>
     </div></article>`;
@@ -66,8 +72,14 @@
     nodes.grid.innerHTML = shown.map(card).join('');
     nodes.count.textContent = `${number.format(matching.length)} matching benefit${matching.length === 1 ? '' : 's'}` + (matching.length > shown.length ? ` · Showing ${shown.length}` : '');
     nodes.empty.hidden = matching.length !== 0;
+    const query = state.search.trim();
+    document.getElementById('empty-title').textContent = query ? `No match for “${query}”` : 'No matches found';
+    document.getElementById('empty-message').textContent = query
+      ? 'Try a shorter word, browse all categories, or describe the concern in your own words in Search by issue.'
+      : 'Try a different search or browse all categories.';
+    document.getElementById('try-issue').hidden = !query;
     nodes.load.hidden = matching.length <= state.visible;
-    nodes.reset.hidden = !state.search.trim() && state.category === 'all';
+    nodes.reset.hidden = !query && state.category === 'all';
   }
   function resetVisible() { state.visible = 9; render(); }
   function setSearch(term) {
@@ -99,22 +111,46 @@
       <p class="estimate-disclaimer">Assumes the entered amount is eligible and within reasonable and customary charges, with no other payer and no additional restrictions. Shared limits, prior claims, and coordination of benefits may change the amount.</p>
     </section>`;
   }
+  function claimRouteMarkup(item) {
+    const route = claimRoute(item, state.coverage);
+    return `<strong>${escapeHTML(route.provider)}</strong>. ${escapeHTML(route.detail)} <a href="${route.url}" target="_blank" rel="noopener noreferrer">Open the ${escapeHTML(route.provider)} portal <span aria-hidden="true">↗</span></a>`;
+  }
+  function beforeYouSpend(item) {
+    const shared = item.combined ? sharedLimits[item.combined] : null;
+    const cycle = ['glasses', 'eye-exam'].includes(item.id) ? isOddCycleYear() : null;
+    const scope = shared
+      ? `<strong>Shared limit.</strong> ${escapeHTML(shared)} Claims from every included provider type count against the same pool.`
+      : `<strong>Separate limit.</strong> Other listed benefits have their own limits, so spending on this one does not use them up.${['chiropractor', 'osteopathy'].includes(item.id) ? ' Eligible X-rays count toward the same annual practitioner limit as treatment, not a separate allowance.' : ''}`;
+    const resets = cycle
+      ? `${escapeHTML(item.period)}. The current period is ${cycle.firstYear}–${cycle.lastYear}, not a rolling 24 months.`
+      : escapeHTML(item.period);
+    return `<section class="detail-before" aria-labelledby="before-title">
+      <h3 id="before-title">Before you spend</h3>
+      <dl class="before-list">
+        <div><dt>How the limit works</dt><dd>${scope}</dd></div>
+        <div><dt>When it resets</dt><dd>${resets}</dd></div>
+        <div><dt>What you need</dt><dd>${escapeHTML(item.docs)}</dd></div>
+        <div><dt>Where the claim goes</dt><dd>${claimRouteMarkup(item)}</dd></div>
+      </dl>
+      <p class="before-note">The amount shown is a maximum eligible expense, not a guaranteed payment.${item.rate === 80 ? ' At 80%, a $100 eligible expense would normally reimburse up to $80.' : ''}</p>
+    </section>`;
+  }
   function openBenefit(id, { updateAddress = true } = {}) {
     const item = byId.get(id);
     if (!item) return;
     // A direct link can refer to a benefit outside the active coverage filter.
     const outOfScope = !item.planTypes.includes(state.coverage);
-    const cycle = ['glasses', 'eye-exam'].includes(item.id) ? isOddCycleYear() : null;
+    const route = claimRoute(item, state.coverage);
     nodes.detail.innerHTML = `<span class="detail-category">${escapeHTML(catById.get(item.category).label)}</span>
       <h2 id="dialog-title">${escapeHTML(item.title)}</h2>
       <p class="detail-intro" id="dialog-intro">${escapeHTML(item.notes)}</p>
       ${outOfScope ? '<p class="scope-warning">This benefit is not shown for your selected coverage type. Verify which PSHCP coverage you have.</p>' : ''}
       <div class="detail-facts"><div><small>Maximum eligible expense / limit</small><strong>${escapeHTML(item.limit)}</strong><span>${escapeHTML(item.period)}</span></div><div><small>Standard reimbursement rate</small><strong>${item.rate}%</strong><span>Of eligible expenses, subject to conditions</span></div></div>
-      <section class="detail-section"><h3>What to check before spending</h3><p>${escapeHTML(item.docs)}</p>${item.combined && sharedLimits[item.combined] ? `<p><strong>Shared limit:</strong> ${escapeHTML(sharedLimits[item.combined])} Your claims from all included provider types count together.</p>` : ''}${['chiropractor', 'osteopathy'].includes(item.id) ? '<p><strong>Within this service:</strong> Eligible X-rays count toward the same annual practitioner limit as treatment, not a separate allowance.</p>' : ''}${cycle ? `<p><strong>Current two-calendar-year period:</strong> ${cycle.firstYear}–${cycle.lastYear}, not a rolling 24 months.</p>` : ''}</section>
+      ${beforeYouSpend(item)}
       ${estimateMarkup(item)}
-      <section class="detail-sources"><h3>Check the original source</h3><p>Member booklet, November 2026. The Directive applies if the two documents differ.</p><div class="detail-links">${links(item)}</div></section>
-      <div class="detail-actions"><a href="${source.member}" target="_blank" rel="noopener noreferrer" class="member-link">Check my coverage at Canada Life ↗</a><button type="button" id="share-benefit" class="share-button">Copy benefit link</button></div>
-      <p class="detail-footer-note">Information only. No live benefit balance or eligibility verification.</p>`;
+      <section class="detail-sources"><h3>Check the original source</h3><p>Member booklet, November 2026, printed page${item.pages.length === 1 ? '' : 's'} ${item.pages.join(', ')}. Entries checked ${escapeHTML(source.updated)}. The Directive applies if the two documents differ.</p>${item.directiveRef ? `<p class="directive-ref">${escapeHTML(item.directiveRef)} also applies. Read the governing provision before relying on this summary.</p>` : ''}<div class="detail-links">${links(item)}<a href="${source.directive}" target="_blank" rel="noopener noreferrer">PSHCP Directive <span aria-hidden="true">↗</span></a></div></section>
+      <div class="detail-actions"><a href="${route.url}" target="_blank" rel="noopener noreferrer" class="member-link">Verify coverage at ${escapeHTML(route.provider)} ↗</a>${Number.isFinite(item.eligibleExpenseCap) ? `<button type="button" class="track-button" data-track="${escapeHTML(item.id)}">Track what I’ve used</button>` : ''}<button type="button" id="share-benefit" class="share-button">Copy benefit link</button></div>
+      <p class="detail-footer-note">Information only. No live benefit balance or eligibility verification. Content updated ${escapeHTML(source.updated)}.</p>`;
     previousFocus = document.activeElement;
     if (!nodes.dialog.open) nodes.dialog.showModal();
     nodes.dialog.querySelector('.dialog-scroll').scrollTop = 0;
@@ -227,6 +263,109 @@
   });
   renderFinderTopics();
 
+  const USAGE_KEY = 'pshcp-usage-v1';
+  const usageBenefits = benefits
+    .filter(item => Number.isFinite(item.eligibleExpenseCap))
+    .sort((a, b) => a.title.localeCompare(b.title, 'en-CA'));
+  let usage = loadUsage();
+
+  function loadUsage() {
+    try {
+      const parsed = JSON.parse(window.localStorage.getItem(USAGE_KEY) || '{}');
+      const entries = {};
+      for (const [id, value] of Object.entries(parsed)) {
+        if (byId.has(id) && Number.isFinite(value) && value > 0 && value <= maxEstimateAmount) entries[id] = value;
+      }
+      return entries;
+    } catch {
+      return {};
+    }
+  }
+  function saveUsage() {
+    try {
+      window.localStorage.setItem(USAGE_KEY, JSON.stringify(usage));
+    } catch {
+      // Storage can be unavailable (private mode, file://); tracking still works for this visit.
+    }
+  }
+  function cardUsage(item) {
+    if (!Number.isFinite(item.eligibleExpenseCap) || !usage[item.id]) return '';
+    const summary = usageSummary(usage[item.id], item.eligibleExpenseCap, item.rate);
+    return `<span class="card-usage"><span class="card-usage-track" aria-hidden="true"><span style="width:${summary.percent}%"></span></span><span>${summary.percent}% of limit used</span></span>`;
+  }
+  function usageRow(item) {
+    const summary = usageSummary(usage[item.id], item.eligibleExpenseCap, item.rate);
+    if (!summary) return '';
+    const over = summary.overBy > 0;
+    const status = over
+      ? `Over the limit by ${formatCurrency(summary.overBy)}. Only ${formatCurrency(summary.cap)} can count.`
+      : `${summary.percent}% of the eligible limit used.`;
+    return `<article class="usage-row${over ? ' is-over' : ''}">
+      <div class="usage-row-head"><div><h4>${escapeHTML(item.title)}</h4><p>${escapeHTML(item.limit)} · ${escapeHTML(item.period)}</p></div><button type="button" class="usage-remove" data-remove="${escapeHTML(item.id)}">Remove <span class="sr-only">${escapeHTML(item.title)} entries</span></button></div>
+      <div class="usage-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${summary.percent}" aria-label="${escapeHTML(item.title)}: ${summary.percent}% of the eligible limit used"><span class="usage-fill${over ? ' is-over' : ''}" style="width:${summary.percent}%"></span></div>
+      <p class="usage-status">${status}</p>
+      <dl class="usage-figures"><div><dt>Used</dt><dd>${formatCurrency(summary.used)}</dd></div><div><dt>Remaining eligible</dt><dd>${formatCurrency(summary.remaining)}</dd></div><div><dt>Max payment left at ${item.rate}%</dt><dd>${formatCurrency(summary.availablePayout)}</dd></div></dl>
+    </article>`;
+  }
+  function renderUsage() {
+    const tracked = usageBenefits.filter(item => usage[item.id]);
+    nodes.usageBoard.innerHTML = tracked.length
+      ? tracked.map(usageRow).join('')
+      : '<p class="usage-empty">Your tracked benefits will appear here with a progress bar, the remaining eligible amount, and what that remainder could still reimburse at the standard rate.</p>';
+    nodes.usageSummary.textContent = tracked.length
+      ? `${tracked.length} benefit${tracked.length === 1 ? '' : 's'} tracked · ${formatCurrency(tracked.reduce((sum, item) => sum + usage[item.id], 0))} in eligible expenses recorded.`
+      : 'No entries yet. Add a claim to start tracking.';
+    nodes.usageClear.hidden = tracked.length === 0;
+    render();
+  }
+  function focusUsage(id) {
+    if (usageBenefits.some(item => item.id === id)) nodes.usageBenefit.value = id;
+    document.getElementById('usage').scrollIntoView({behavior:'smooth', block:'start'});
+    nodes.usageAmount.focus({preventScroll:true});
+  }
+  nodes.usageBenefit.innerHTML = categories.filter(cat => cat.id !== 'all').map(cat => {
+    const items = usageBenefits.filter(item => item.category === cat.id);
+    if (!items.length) return '';
+    return `<optgroup label="${escapeHTML(cat.label)}">${items.map(item => `<option value="${item.id}">${escapeHTML(item.title)} — ${escapeHTML(item.limit)}</option>`).join('')}</optgroup>`;
+  }).join('');
+  nodes.usageForm.addEventListener('submit', event => {
+    event.preventDefault();
+    const id = nodes.usageBenefit.value;
+    const amount = nodes.usageAmount.valueAsNumber;
+    let message = '';
+    if (!byId.has(id) || !Number.isFinite(byId.get(id)?.eligibleExpenseCap)) message = 'Choose a benefit with a dollar limit.';
+    else if (!Number.isFinite(amount)) message = 'Enter the eligible amount as a number, such as 125.00.';
+    else if (amount <= 0) message = 'Enter an amount greater than $0.';
+    else if (amount > maxEstimateAmount) message = `Enter ${formatCurrency(maxEstimateAmount)} or less.`;
+    nodes.usageError.textContent = message;
+    nodes.usageError.hidden = !message;
+    if (message) {
+      nodes.usageAmount.setAttribute('aria-invalid', 'true');
+      nodes.usageAmount.focus();
+      return;
+    }
+    nodes.usageAmount.removeAttribute('aria-invalid');
+    usage[id] = Math.round(((usage[id] || 0) + amount) * 100) / 100;
+    saveUsage();
+    nodes.usageAmount.value = '';
+    renderUsage();
+    nodes.usageAmount.focus();
+  });
+  nodes.usageBoard.addEventListener('click', event => {
+    const remove = event.target.closest('[data-remove]');
+    if (!remove) return;
+    delete usage[remove.dataset.remove];
+    saveUsage();
+    renderUsage();
+    nodes.usageBenefit.focus();
+  });
+  nodes.usageClear.addEventListener('click', () => {
+    if (!window.confirm('Remove all tracked usage from this browser?')) return;
+    usage = {};
+    saveUsage();
+    renderUsage();
+    nodes.usageBenefit.focus();
+  });
   nodes.search.addEventListener('input', e => {state.search = e.target.value; resetVisible();});
   nodes.search.addEventListener('keydown', event => {
     if (event.key !== 'Enter' || event.isComposing) return;
@@ -265,8 +404,24 @@
     buttons[previous]?.focus({preventScroll:true});
   });
   function clearFilters() { setSearch(''); nodes.search.focus(); }
+  function sendToFinder() {
+    const term = state.search.trim();
+    if (!term) return;
+    finder.input.value = term;
+    const topic = matchTopic(term);
+    if (topic) {
+      renderFinderResult(topic);
+    } else {
+      finder.region.hidden = true;
+      document.getElementById('help-finder').scrollIntoView({behavior:'smooth', block:'start'});
+      finder.input.focus({preventScroll:true});
+    }
+  }
   nodes.reset.addEventListener('click', clearFilters);
-  document.getElementById('clear-filters').addEventListener('click', clearFilters);
+  nodes.empty.addEventListener('click', event => {
+    if (event.target.closest('#clear-filters')) clearFilters();
+    if (event.target.closest('#try-issue')) sendToFinder();
+  });
   document.getElementById('close-dialog').addEventListener('click', closeBenefit);
   nodes.dialog.addEventListener('click', event => { if (event.target === nodes.dialog) closeBenefit(); });
   nodes.dialog.addEventListener('close', () => {
@@ -277,11 +432,22 @@
       history.replaceState(null, '', url);
     }
     if (previousFocus?.isConnected) previousFocus.focus({preventScroll:true});
+    if (nodes.dialog.dataset.trackTarget) {
+      const id = nodes.dialog.dataset.trackTarget;
+      delete nodes.dialog.dataset.trackTarget;
+      focusUsage(id);
+    }
   });
   nodes.detail.addEventListener('input', event => {
     if (event.target.matches('#estimate-cost, #estimate-used')) updateEstimate();
   });
   nodes.detail.addEventListener('click', async event => {
+    const track = event.target.closest('[data-track]');
+    if (track) {
+      nodes.dialog.dataset.trackTarget = track.dataset.track;
+      closeBenefit();
+      return;
+    }
     if (event.target.id !== 'share-benefit') return;
     const button = event.target;
     const url = new URL(window.location.href);
@@ -299,7 +465,7 @@
     event.preventDefault();
     nodes.search.focus();
   });
-  render();
+  renderUsage();
   const requestedId = new URLSearchParams(window.location.search).get('benefit');
   if (requestedId && byId.has(requestedId)) openBenefit(requestedId, {updateAddress:false});
 })();

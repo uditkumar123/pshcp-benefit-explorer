@@ -26,3 +26,21 @@ test('illustrative estimator uses pure calculations with explicit caveats', () =
   assert.match(js,/item\.noEstimate/);
   assert.match(js,/eligibleExpenseCap/);
 });
+test('claim routing and content freshness are visible in the interface', () => {
+  assert.match(html,/Where to submit a claim/);
+  assert.match(html,/id="empty-state"/);
+  assert.match(html,/id="try-issue"/);
+  assert.match(html,/Close benefit details/);
+  assert.match(html,/23 November 2026/);
+  assert.match(js,/claimRoute\(/);
+  assert.match(js,/rankBenefits\(/);
+});
+test('usage tracker is present with an accessible progress bar and local-only storage', () => {
+  for (const id of ['usage', 'usage-form', 'usage-benefit', 'usage-amount', 'usage-board', 'usage-summary', 'usage-clear']) {
+    assert.match(html, new RegExp(`id="${id}"`));
+  }
+  assert.match(js, /role="progressbar"/);
+  assert.match(js, /localStorage/);
+  assert.match(js, /pshcp-usage-v1/);
+  assert.match(html, /Saved in this browser only/);
+});

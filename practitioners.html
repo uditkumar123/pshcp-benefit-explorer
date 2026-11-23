@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en-CA">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#111a32">
+  <meta name="description" content="Compare what physiotherapy, massage therapy, chiropractic care and other PSHCP practitioners generally do, with each benefit limit.">
+  <title>Which practitioner? | Benefit Atlas</title>
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="styles.css">
+  <script src="data.js" defer></script>
+  <script src="logic.js" defer></script>
+  <script src="guide.js" defer></script>
+  <script src="app.js" defer></script>
+</head>
+<body id="top">
+  <a class="skip-link" href="#main">Skip to content</a>
+  <header class="site-header">
+    <div class="container topbar">
+      <a class="brand" href="index.html">
+        <span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true" focusable="false"><path d="M5 3h10l4 4v14H5z M15 3v5h4 M8 12h8 M8 16h6"/></svg></span>
+        <span>Benefit <span class="brand-accent">Atlas</span><small>Independent PSHCP reference</small></span>
+      </a>
+      <nav class="top-nav" aria-label="Main navigation">
+        <a href="benefits.html">Benefits</a><a href="practitioners.html" aria-current="page">Practitioners</a><a href="finder.html">Find help</a><a href="usage.html">My usage</a><a href="claims.html">Claims</a>
+      </nav>
+      <a class="source-top-link" href="https://www.njc-cnm.gc.ca/directive/d9/v283/en" target="_blank" rel="noopener noreferrer">PSHCP Directive <span aria-hidden="true">↗</span></a>
+    </div>
+  </header>
+
+  <main id="main">
+    <section class="page-head" aria-labelledby="page-title">
+      <div class="container">
+        <span class="section-kicker">PROVIDERS</span>
+        <h1 id="page-title">Which practitioner?</h1>
+        <p>Physiotherapy, massage therapy and chiropractic care are separate benefits. These short descriptions explain what each provider generally does.</p>
+        <span class="edition">Open a provider for plan rules</span>
+      </div>
+    </section>
+
+    <section class="practitioner-section" id="practitioners" aria-label="Practitioner comparison">
+      <div class="container">
+        <div class="table-scroll practitioner-scroll">
+          <table class="practitioner-table">
+            <caption class="sr-only">Practitioner benefits: what each provider generally does, what they often focus on, and the PSHCP limit</caption>
+            <thead><tr><th scope="col">Provider</th><th scope="col">What they generally do</th><th scope="col">Often focuses on</th><th scope="col">PSHCP limit</th></tr></thead>
+            <tbody id="practitioner-rows"></tbody>
+          </table>
+        </div>
+        <p class="practitioner-note">General information, not medical advice or a recommendation of one provider over another. Scope of practice and protected titles vary by province and territory. Check the provider’s credentials and the plan’s qualification rules; plan limits are maximum eligible expenses, not guaranteed payments. <a href="benefits.html">See all benefit rules</a>.</p>
+      </div>
+    </section>
+  </main>
+
+  <dialog class="benefit-dialog" id="benefit-dialog" aria-labelledby="dialog-title" aria-describedby="dialog-intro">
+    <div class="dialog-shell">
+      <div class="dialog-top"><span class="dialog-overline">BENEFIT DETAILS</span><button class="dialog-close" type="button" id="close-dialog" aria-label="Close benefit details"><svg viewBox="0 0 20 20" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true" focusable="false"><path d="m5 5 10 10M15 5 5 15"/></svg><span>Close</span></button></div>
+      <div class="dialog-scroll" id="dialog-content"></div>
+    </div>
+  </dialog>
+
+  <footer class="footer"><div class="container footer-inner"><div class="footer-brand">Benefit <span>Atlas</span></div><p>Independent PSHCP reference. English-only pilot. Content updated <time datetime="2026-11-23">23 November 2026</time>.</p><a href="#top">Back to top ↑</a></div></footer>
+</body>
+</html>

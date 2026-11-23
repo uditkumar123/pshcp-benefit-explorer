@@ -12,6 +12,11 @@ if (!Number.isInteger(port) || port < 1 || port > 65535) {
 // Serve only browser-facing files, not the repository or directory listings.
 const assets = new Map([
   ['/index.html', 'text/html; charset=utf-8'],
+  ['/benefits.html', 'text/html; charset=utf-8'],
+  ['/practitioners.html', 'text/html; charset=utf-8'],
+  ['/finder.html', 'text/html; charset=utf-8'],
+  ['/usage.html', 'text/html; charset=utf-8'],
+  ['/claims.html', 'text/html; charset=utf-8'],
   ['/styles.css', 'text/css; charset=utf-8'],
   ['/app.js', 'text/javascript; charset=utf-8'],
   ['/data.js', 'text/javascript; charset=utf-8'],

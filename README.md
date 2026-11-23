@@ -4,6 +4,21 @@ A lightweight, accessible, privacy-first web app that helps people explore **Pub
 
 > Independent informational tool. Not affiliated with the Government of Canada, the PSHCP, Canada Life or MSH International. The booklet is a summary; the PSHCP Directive controls if there is a discrepancy. **No live coverage verification or account balances.**
 
+## How the site is organized
+
+The reference is split into focused pages instead of one long scrolling page:
+
+| Page | Purpose |
+|---|---|
+| `index.html` | Short entry point: search, popular benefits and four ways in |
+| `benefits.html` | Benefit directory with search, categories, coverage type and sort |
+| `practitioners.html` | Comparison of what each practitioner generally does, beside their limit |
+| `finder.html` | Plain-language issue finder with a shareable `?q=` search |
+| `usage.html` | Optional local tracker with JSON and CSV backup |
+| `claims.html` | Claim routing, deadlines, emergency contacts and sources |
+
+Shared navigation appears on every page, and the current page is marked for assistive technology. Benefit deep links such as `benefits.html?benefit=psychological` still work.
+
 ## Usage tracker (version 4)
 
 Use **My usage** to add the **amount eligible** from a processed Canada Life claim. Each tracked benefit shows a bar for used versus remaining eligible expense, the remaining eligible amount, and what that remainder could still reimburse at the standard rate.
@@ -15,7 +30,7 @@ Use **My usage** to add the **amount eligible** from a processed Canada Life cla
 
 ## Guided issue finder (version 3)
 
-Use **What do you need help with?** to describe an issue (for example `back pain`, `anxiety`, `foot pain`, or `sleep apnea`) or choose a topic button. The interface offers **possible benefit categories to explore**, not medical diagnoses, prescriptions, coverage approvals, or personalized eligibility determinations.
+Use **Find help** to describe an issue (for example `back pain`, `anxiety`, `foot pain`, or `sleep apnea`) or choose a topic button. The interface offers **possible benefit categories to explore**, not medical diagnoses, prescriptions, coverage approvals, or personalized eligibility determinations.
 
 - Suggestions use a fixed, inspectable topic-to-benefit map in `guide.js`, not an AI service, with no server-side collection of the issue text.
 - Every suggested service links back to the source-backed benefit card and page references.
@@ -28,7 +43,8 @@ Use **What do you need help with?** to describe an issue (for example `back pain
 
 ## Other features
 
-- **Search-first home page:** start with a service or common term instead of browsing a long booklet.
+- **Search-first home page:** a short entry point with search and four focused paths, not the whole reference.
+- **Focused pages:** the directory, practitioner comparison, issue finder, usage tracker and claim guidance each have their own page.
 - **Relevance-ranked search:** direct benefit names and aliases come first, common misspellings are tolerated, and a no-match search can jump straight to the issue finder with the same wording.
 - **Popular benefit shortcuts:** open frequently used entries directly.
 - **Focused detail panel:** a **Before you spend** summary puts the limit type, reset period, documents and claim destination ahead of the calculator.
@@ -98,10 +114,15 @@ For a small, moderated comparison with the official coverage guide, see the [pil
 
 | Path | Responsibility |
 |---|---|
-| `index.html` | Semantic, accessible interface |
-| `styles.css` | Responsive visual design |
-| `app.js` | Search, progressive results, accessible benefit panel and shareable links |
-| `logic.js` | Pure testable calculations |
+| `index.html` | Short home page: search, popular benefits and paths into the app |
+| `benefits.html` | Directory, category filters, coverage type and benefit panel |
+| `practitioners.html` | Practitioner comparison table |
+| `finder.html` | Issue finder and shareable query results |
+| `usage.html` | Local usage tracker and file backup |
+| `claims.html` | Claim routing, deadlines and source documents |
+| `styles.css` | Responsive visual design for every page |
+| `app.js` | Page-scoped behaviour: directory, finder, tracker, provider table and shared benefit panel |
+| `logic.js` | Pure testable calculations, search ranking and file parsing |
 | `data.js` | Curated, page-referenced benefit entries |
 | `docs/content-changelog.md` | Dated content and claim-routing changes, with review status |
 | `tests/` | Data-integrity, search, routing and behaviour tests; browser journeys in `tests/e2e/` |

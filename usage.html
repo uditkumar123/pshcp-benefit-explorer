@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en-CA">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#111a32">
+  <meta name="description" content="Track how much of each PSHCP dollar limit you have used. Entries stay in your browser and can be saved as JSON or CSV. Not an official balance.">
+  <title>My PSHCP usage | Benefit Atlas</title>
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="styles.css">
+  <script src="data.js" defer></script>
+  <script src="logic.js" defer></script>
+  <script src="guide.js" defer></script>
+  <script src="app.js" defer></script>
+</head>
+<body id="top">
+  <a class="skip-link" href="#main">Skip to content</a>
+  <header class="site-header">
+    <div class="container topbar">
+      <a class="brand" href="index.html">
+        <span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true" focusable="false"><path d="M5 3h10l4 4v14H5z M15 3v5h4 M8 12h8 M8 16h6"/></svg></span>
+        <span>Benefit <span class="brand-accent">Atlas</span><small>Independent PSHCP reference</small></span>
+      </a>
+      <nav class="top-nav" aria-label="Main navigation">
+        <a href="benefits.html">Benefits</a><a href="practitioners.html">Practitioners</a><a href="finder.html">Find help</a><a href="usage.html" aria-current="page">My usage</a><a href="claims.html">Claims</a>
+      </nav>
+      <a class="source-top-link" href="https://www.njc-cnm.gc.ca/directive/d9/v283/en" target="_blank" rel="noopener noreferrer">PSHCP Directive <span aria-hidden="true">↗</span></a>
+    </div>
+  </header>
+
+  <main id="main">
+    <section class="page-head" aria-labelledby="page-title">
+      <div class="container">
+        <span class="section-kicker">PLAN PERIOD</span>
+        <h1 id="page-title">What have you used?</h1>
+        <p>Add the <strong>amount eligible</strong> from a processed Canada Life claim to see how much of each dollar limit remains. No plan, member or certificate numbers are needed.</p>
+        <span class="edition">Saved in this browser only</span>
+      </div>
+    </section>
+
+    <section class="usage-section" id="usage" aria-label="Usage tracker">
+      <div class="container">
+        <div class="usage-layout">
+          <form class="usage-form" id="usage-form" novalidate>
+            <h2>Add a processed claim</h2>
+            <label for="usage-benefit">Benefit</label>
+            <select id="usage-benefit"></select>
+            <label for="usage-amount">Amount eligible ($)</label>
+            <input id="usage-amount" type="number" min="0.01" step="0.01" inputmode="decimal" required>
+            <button type="submit">Add to my usage</button>
+            <p class="usage-error" id="usage-error" hidden></p>
+            <p class="usage-hint">Use the “Amount eligible” column, not “Paid”. Limits apply to eligible expenses before the reimbursement rate.</p>
+          </form>
+          <div class="usage-board" id="usage-board" aria-live="polite"></div>
+        </div>
+        <div class="usage-footer"><p id="usage-summary">No entries yet. Add a claim to start tracking.</p><div class="usage-file-actions"><button id="usage-export" type="button" class="usage-file-button" disabled>Save backup (JSON)</button><button id="usage-export-csv" type="button" class="usage-file-button" disabled>Save spreadsheet (CSV)</button><button id="usage-import" type="button" class="usage-file-button">Load file</button><button id="usage-clear" type="button" class="text-button" hidden>Clear all my entries</button></div></div>
+        <p class="usage-file-note">Entries save automatically in this browser. <strong>Save backup (JSON)</strong> restores everything later; <strong>Save spreadsheet (CSV)</strong> opens in Excel or Sheets. <strong>Load file</strong> accepts either. The file contains benefit names and eligible amounts only — no plan, member or claim details. Treat it as private, because benefit names can be sensitive.</p>
+        <p class="usage-file-status" id="usage-file-status" role="status" aria-live="polite"></p>
+        <input type="file" id="usage-file" accept=".json,.csv,application/json,text/csv" hidden>
+        <p class="usage-caution">Only dollar-based limits can be shown as a bar. Frequency limits (for example, one CPAP device every 60 months) and per-day hospital amounts are not tracked. Use one set of entries per benefit period and clear the tracker when a new calendar year or benefit cycle starts. These figures are your own notes, not an official balance — check Canada Life or MSH for the claim decision.</p>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer"><div class="container footer-inner"><div class="footer-brand">Benefit <span>Atlas</span></div><p>Independent PSHCP reference. English-only pilot. Content updated <time datetime="2026-11-23">23 November 2026</time>.</p><a href="#top">Back to top ↑</a></div></footer>
+</body>
+</html>

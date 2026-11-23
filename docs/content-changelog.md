@@ -4,6 +4,13 @@ This log records visible changes to benefit content and claim guidance. It is no
 
 ## 23 November 2026 — usage tracker, claim routing and search improvements
 
+**Page structure**
+
+- Split the single long page into six focused pages with shared navigation: home, benefits, practitioners, finder, usage and claims.
+- The home page now offers search, popular shortcuts and four paths instead of the full directory, tracker and claim guidance.
+- Benefit deep links and finder `?q=` links remain shareable across pages; the selected coverage type persists in this browser.
+- Screen-reader users get an active-page marker in the navigation.
+
 **Usage tracker**
 
 - Added an optional local tracker that turns entered eligible-expense amounts into a used-versus-remaining bar per benefit.

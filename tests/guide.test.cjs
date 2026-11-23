@@ -49,8 +49,8 @@ test('shared practitioner limits are explicit and traceable', () => {
   assert.match(sharedLimits.speech, /750/);
   for (const id of Object.keys(sharedLimits)) assert.equal(byId.get(id).combined, id);
 });
-test('guided form and script are included on home page', () => {
-  const html = fs.readFileSync(path.join(__dirname, '../index.html'), 'utf8');
+test('guided form and script are included on the finder page', () => {
+  const html = fs.readFileSync(path.join(__dirname, '../finder.html'), 'utf8');
   for (const id of ['help-finder', 'finder-form', 'issue-input', 'finder-topics', 'finder-results', 'finder-results-content']) {
     assert.match(html, new RegExp(`id="${id}"`));
   }

@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en-CA">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#111a32">
+  <meta name="description" content="Browse Public Service Health Care Plan benefit limits, reimbursement rates, conditions and printed booklet pages. Filter by category and coverage type.">
+  <title>Browse PSHCP benefits | Benefit Atlas</title>
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="styles.css">
+  <script src="data.js" defer></script>
+  <script src="logic.js" defer></script>
+  <script src="guide.js" defer></script>
+  <script src="app.js" defer></script>
+</head>
+<body id="top">
+  <a class="skip-link" href="#main">Skip to content</a>
+  <header class="site-header">
+    <div class="container topbar">
+      <a class="brand" href="index.html">
+        <span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true" focusable="false"><path d="M5 3h10l4 4v14H5z M15 3v5h4 M8 12h8 M8 16h6"/></svg></span>
+        <span>Benefit <span class="brand-accent">Atlas</span><small>Independent PSHCP reference</small></span>
+      </a>
+      <nav class="top-nav" aria-label="Main navigation">
+        <a href="benefits.html" aria-current="page">Benefits</a><a href="practitioners.html">Practitioners</a><a href="finder.html">Find help</a><a href="usage.html">My usage</a><a href="claims.html">Claims</a>
+      </nav>
+      <a class="source-top-link" href="https://www.njc-cnm.gc.ca/directive/d9/v283/en" target="_blank" rel="noopener noreferrer">PSHCP Directive <span aria-hidden="true">↗</span></a>
+    </div>
+  </header>
+
+  <main id="main">
+    <section class="page-head" aria-labelledby="page-title">
+      <div class="container">
+        <span class="section-kicker">DIRECTORY</span>
+        <h1 id="page-title">Browse benefits</h1>
+        <p>Compare maximum eligible expenses and reimbursement rates. Open any benefit for the conditions, documents and claim destination.</p>
+        <span class="edition">November 2026 booklet</span>
+      </div>
+    </section>
+
+    <section class="explore-section" id="explore" aria-label="Benefit directory">
+      <div class="container">
+        <div class="coverage-line">
+          <div class="coverage-intro"><strong>Coverage type</strong><span>Select the type shown in your plan information.</span></div>
+          <fieldset class="coverage-options">
+            <legend class="sr-only">PSHCP coverage type</legend>
+            <label><input type="radio" name="coverage" value="supplementary" checked><span>Supplementary</span></label>
+            <label><input type="radio" name="coverage" value="comprehensive"><span>Comprehensive</span></label>
+          </fieldset>
+          <p id="coverage-explainer">Supplementary Coverage generally applies when you have provincial or territorial health insurance.</p>
+        </div>
+
+        <div class="search-card search-card-compact">
+          <label for="benefit-search">Search by service, item, or benefit</label>
+          <div class="search-field">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m15.5 15.5 5 5" stroke-linecap="round"/></svg>
+            <input id="benefit-search" type="search" placeholder="Try massage, glasses, counselling, CPAP…" autocomplete="off" aria-controls="benefit-grid">
+            <kbd aria-hidden="true">/</kbd>
+          </div>
+        </div>
+
+        <div class="directory-layout">
+          <div class="directory-filters">
+            <h2 class="directory-filters-title">Categories</h2>
+            <div id="category-list" class="category-list" role="group" aria-label="Benefit categories"></div>
+            <label class="mobile-category" for="category-select">Category <select id="category-select" aria-controls="benefit-grid"></select></label>
+          </div>
+          <div class="directory-results">
+            <div class="results-bar">
+              <p id="result-count" role="status" aria-live="polite" aria-atomic="true">Loading benefits…</p>
+              <div class="results-controls"><button id="reset-filters" type="button" class="text-button" hidden>Clear search and filters</button><label for="benefit-sort">Sort by <select id="benefit-sort"><option value="featured">Popular first</option><option value="az">A–Z</option></select></label></div>
+            </div>
+            <div class="benefit-grid" id="benefit-grid"></div>
+            <div class="no-results" id="empty-state" hidden><h2 id="empty-title">No matches found</h2><p id="empty-message">Try a different search or browse all categories.</p><div class="empty-actions"><button type="button" id="clear-filters">Show all benefits</button><a id="try-issue" class="primary-button" href="finder.html" hidden>Try Search by issue</a></div></div>
+            <div class="load-more-wrap"><button type="button" class="load-more" id="load-more" hidden>Show more benefits <span aria-hidden="true">↓</span></button></div>
+          </div>
+        </div>
+        <p class="directory-note">This directory does not list every PSHCP benefit. Dollar amounts shown are generally <strong>maximum eligible expenses, not guaranteed reimbursements</strong>. Your actual payment depends on plan conditions and reasonable and customary charges. Not sure which provider to see? <a href="practitioners.html">Compare practitioner benefits</a>.</p>
+      </div>
+    </section>
+  </main>
+
+  <dialog class="benefit-dialog" id="benefit-dialog" aria-labelledby="dialog-title" aria-describedby="dialog-intro">
+    <div class="dialog-shell">
+      <div class="dialog-top"><span class="dialog-overline">BENEFIT DETAILS</span><button class="dialog-close" type="button" id="close-dialog" aria-label="Close benefit details"><svg viewBox="0 0 20 20" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true" focusable="false"><path d="m5 5 10 10M15 5 5 15"/></svg><span>Close</span></button></div>
+      <div class="dialog-scroll" id="dialog-content"></div>
+    </div>
+  </dialog>
+
+  <footer class="footer"><div class="container footer-inner"><div class="footer-brand">Benefit <span>Atlas</span></div><p>Independent PSHCP reference. English-only pilot. Content updated <time datetime="2026-11-23">23 November 2026</time>.</p><a href="#top">Back to top ↑</a></div></footer>
+</body>
+</html>

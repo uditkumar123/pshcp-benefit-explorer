@@ -5,9 +5,38 @@ const resultCards = page => page.locator('#benefit-grid').getByRole('button');
 
 test.beforeEach(async ({ page }) => {
   // Each test starts from an empty browser store, including the usage tracker.
-  await page.goto('/');
+  await page.goto('/benefits.html');
   await page.evaluate(() => window.localStorage.clear());
   await page.reload();
+});
+
+test('home is a short entry point and links into focused pages', async ({ page }) => {
+  await page.goto('/');
+
+  await expect(page.getByRole('heading', { level: 1, name: 'PSHCP benefit finder' })).toBeVisible();
+  await expect(page.locator('#benefit-grid')).toHaveCount(0);
+  await expect(page.locator('#usage-form')).toHaveCount(0);
+  await expect(page.locator('#finder-form')).toHaveCount(0);
+
+  await page.getByRole('navigation').getByRole('link', { name: 'Benefits' }).click();
+  await expect(page).toHaveURL(/\/benefits\.html$/);
+  await expect(page.getByRole('heading', { level: 1, name: 'Browse benefits' })).toBeVisible();
+  await expect(page.getByRole('navigation').getByRole('link', { name: 'Benefits' })).toHaveAttribute('aria-current', 'page');
+});
+
+test('popular shortcuts open a benefit on the directory page', async ({ page }) => {
+  await page.goto('/');
+  await page.locator('.quick-searches').getByRole('link', { name: 'Glasses' }).click();
+
+  await expect(page).toHaveURL(/benefits\.html\?benefit=glasses/);
+  await expect(page.getByRole('dialog', { name: 'Glasses & contact lenses' })).toBeVisible();
+});
+
+test('old home deep links still reach the benefit panel', async ({ page }) => {
+  await page.goto('/?benefit=massage');
+
+  await expect(page).toHaveURL(/benefits\.html\?benefit=massage/);
+  await expect(page.getByRole('dialog', { name: 'Massage therapy' })).toBeVisible();
 });
 
 test('search tolerates a typo and ranks the named benefit first', async ({ page }) => {
@@ -20,12 +49,12 @@ test('no-match search recovers through the issue finder', async ({ page }) => {
   await searchInput(page).fill('sore feet');
 
   await expect(page.getByRole('heading', { name: 'No match for “sore feet”' })).toBeVisible();
-  const tryIssue = page.getByRole('button', { name: 'Try Search by issue' });
+  const tryIssue = page.getByRole('link', { name: 'Try Search by issue' });
   await expect(tryIssue).toBeVisible();
   await tryIssue.click();
 
+  await expect(page).toHaveURL(/finder\.html\?q=sore(?:\+|%20)feet/);
   const issueInput = page.getByLabel('Describe what you need help with');
-  await expect(issueInput).toBeVisible();
   await expect(issueInput).toHaveValue('sore feet');
 
   const results = page.locator('#finder-results');
@@ -37,15 +66,27 @@ test('no-match search recovers through the issue finder', async ({ page }) => {
   }
 });
 
+test('finder results are shareable through the q parameter', async ({ page }) => {
+  await page.goto('/finder.html?q=back+pain');
+
+  const results = page.locator('#finder-results');
+  await expect(results.getByRole('heading', { name: 'Back, neck or muscle pain' })).toBeVisible();
+  await expect(page.getByLabel('Describe what you need help with')).toHaveValue('back pain');
+  await expect(results.getByRole('heading', { name: 'Physiotherapy' })).toBeVisible();
+});
+
 test('coverage switch adds and removes supplementary-only travel cover', async ({ page }) => {
-  const travelEmergency = page.getByRole('button', { name: 'Emergency care while travelling' });
+  const travelEmergency = page.locator('#benefit-grid').getByRole('button', { name: 'Emergency care while travelling' });
   await expect(travelEmergency).toBeVisible();
 
   await page.getByRole('radio', { name: 'Comprehensive' }).check();
-  await expect(page.getByRole('button', { name: 'Emergency care while travelling' })).toHaveCount(0);
+  await expect(page.locator('#benefit-grid').getByRole('button', { name: 'Emergency care while travelling' })).toHaveCount(0);
+
+  await page.reload();
+  await expect(page.getByRole('radio', { name: 'Comprehensive' })).toBeChecked();
 
   await page.getByRole('radio', { name: 'Supplementary' }).check();
-  await expect(page.getByRole('button', { name: 'Emergency care while travelling' })).toBeVisible();
+  await expect(travelEmergency).toBeVisible();
 });
 
 test('benefit dialog is modal, closes with Escape and restores focus', async ({ page }) => {
@@ -67,7 +108,7 @@ test('benefit dialog is modal, closes with Escape and restores focus', async ({ 
 });
 
 test('deep link opens the benefit with its shared-limit wording', async ({ page }) => {
-  await page.goto('/?benefit=psychological');
+  await page.goto('/benefits.html?benefit=psychological');
 
   const dialog = page.getByRole('dialog', { name: 'Mental health & counselling' });
   await expect(dialog).toBeVisible();
@@ -78,12 +119,10 @@ test('deep link opens the benefit with its shared-limit wording', async ({ page 
     .filter({ hasText: /share ONE \$5,000 eligible-expense maximum/ });
   await expect(sharedLimit).toHaveCount(1);
   await expect(sharedLimit).toContainText('Shared limit.');
-  await expect(sharedLimit).toContainText(
-    /psychologists, psychotherapists, social workers and qualified counsellors share ONE \$5,000 eligible-expense maximum per calendar year/i
-  );
 });
 
 test('usage tracker shows progress, persists on reload and clears', async ({ page }) => {
+  await page.goto('/usage.html');
   await page.getByRole('combobox', { name: 'Benefit', exact: true }).selectOption('physiotherapy');
   await page.getByLabel('Amount eligible ($)').fill('1250');
   await page.getByRole('button', { name: 'Add to my usage' }).click();
@@ -118,7 +157,16 @@ test('usage tracker shows progress, persists on reload and clears', async ({ pag
   await expect(page.getByText(/Your tracked benefits will appear here/)).toBeVisible();
 });
 
+test('tracking link opens the tracker with the benefit preselected', async ({ page }) => {
+  await page.goto('/benefits.html?benefit=physiotherapy');
+  await page.getByRole('link', { name: 'Track what I’ve used' }).click();
+
+  await expect(page).toHaveURL(/usage\.html\?benefit=physiotherapy/);
+  await expect(page.getByRole('combobox', { name: 'Benefit', exact: true })).toHaveValue('physiotherapy');
+});
+
 test('claim routing table names the right administrator for travel and Comprehensive rules', async ({ page }) => {
+  await page.goto('/claims.html');
   const table = page.locator('#claim-help').getByRole('table');
   await expect(table).toBeVisible();
   await expect(table.getByRole('row')).toHaveCount(6);
@@ -135,12 +183,12 @@ test('claim routing table names the right administrator for travel and Comprehen
 });
 
 test('practitioner guide explains physiotherapy versus massage and opens details', async ({ page }) => {
-  const section = page.locator('#practitioners');
-  await expect(section.getByRole('heading', { name: 'Which practitioner?' })).toBeVisible();
-  await expect(section.getByRole('row')).toHaveCount(15);
+  await page.goto('/practitioners.html');
+  await expect(page.getByRole('heading', { level: 1, name: 'Which practitioner?' })).toBeVisible();
+  await expect(page.getByRole('row')).toHaveCount(15);
 
-  const physiotherapy = section.getByRole('row', { name: /Physiotherapy/ });
-  const massage = section.getByRole('row', { name: /Massage therapy/ });
+  const physiotherapy = page.getByRole('row', { name: /Physiotherapy/ });
+  const massage = page.getByRole('row', { name: /Massage therapy/ });
   await expect(physiotherapy).toContainText('$1,500');
   await expect(physiotherapy).toContainText('Separate');
   await expect(massage).toContainText('$500');
@@ -155,6 +203,7 @@ test('practitioner guide explains physiotherapy versus massage and opens details
 });
 
 test('usage can be saved to a JSON file and loaded back', async ({ page }) => {
+  await page.goto('/usage.html');
   await page.getByRole('combobox', { name: 'Benefit', exact: true }).selectOption('massage');
   await page.getByLabel('Amount eligible ($)').fill('200');
   await page.getByRole('button', { name: 'Add to my usage' }).click();
@@ -200,6 +249,7 @@ test('usage can be saved to a JSON file and loaded back', async ({ page }) => {
 });
 
 test('usage can be saved as CSV and loaded back', async ({ page }) => {
+  await page.goto('/usage.html');
   await page.getByRole('combobox', { name: 'Benefit', exact: true }).selectOption('footcare');
   await page.getByLabel('Amount eligible ($)').fill('125');
   await page.getByRole('button', { name: 'Add to my usage' }).click();

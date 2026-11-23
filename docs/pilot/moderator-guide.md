@@ -2,7 +2,7 @@
 
 **Goal:** Can members who don’t know what to look up find the right benefit, understand a key condition, and identify an official next step? Compare Benefit Atlas with the [PSHCP Administration Authority coverage guide](https://pshcp.ca/coverage/). Correctness matters more than speed.
 
-**Setup:** Five sessions, about 25 minutes each. Use the [recruitment invitation](recruitment.md) and review the [moderator-only answer key](answer-key.md) before the first session. Open each task at the assigned site’s home or coverage page in a fresh tab, with Atlas at its default settings. Allow normal navigation, site search, and public source links; no outside search, account sign-in, or claim submission. Use the same device and browser for both sites in each session.
+**Setup:** Five sessions, about 25 minutes each. Use the [recruitment invitation](recruitment.md) and review the [moderator-only answer key](answer-key.md) before the first session. Open each task at the assigned site’s home or coverage page in a fresh tab. Atlas now splits its content across separate pages (benefits, practitioners, finder, usage, claims); start at its home page and allow normal navigation. Allow normal navigation, site search, and public source links; no outside search, account sign-in, or claim submission. Use the same device and browser for both sites in each session.
 
 ## Read aloud
 
